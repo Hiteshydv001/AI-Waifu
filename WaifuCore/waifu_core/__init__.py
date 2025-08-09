@@ -1,0 +1,1 @@
+# WaifuCore package initialization 
