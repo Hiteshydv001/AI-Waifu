@@ -19,6 +19,11 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.pth
+
+WaifuCore/models/kokoro/kokoro-v1_0.pth
+
+
 
 # Virtual environments
 venv/
