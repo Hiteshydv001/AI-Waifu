@@ -1,13 +1,11 @@
 # waifu_core/engine.py
+import re # <-- ADD THIS IMPORT
 from waifu_core.models import LLMProvider, CharacterState
 from waifu_core.services.asr_service import ASRService
 from waifu_core.services.llm_service import LLMService
 from waifu_core.services.memory_service import MemoryService
-
-# --- NEW: Import specific TTS services ---
 from waifu_core.services.tts.coqui_tts import CoquiTTSService
 from waifu_core.services.tts.kokoro_tts import KokoroTTSService
-
 import yaml
 from pathlib import Path
 
@@ -17,13 +15,12 @@ CHARACTER_CONFIG = yaml.safe_load(Path("config/character.yaml").read_text())
 class ConversationEngine:
     def __init__(self):
         llm_provider = self._get_user_llm_choice()
-        tts_provider = self._get_user_tts_choice() # <-- NEW
+        tts_provider = self._get_user_tts_choice()
         
         self.state = CharacterState.IDLE
         self.asr_service = ASRService()
         self.llm_service = LLMService(provider=llm_provider)
         
-        # --- NEW: Dynamic TTS Service Loading ---
         if tts_provider == "coqui":
             self.tts_service = CoquiTTSService(config=SERVICE_CONFIG['tts']['coqui'])
         elif tts_provider == "kokoro":
@@ -34,7 +31,17 @@ class ConversationEngine:
         self.memory_service = MemoryService()
         self.emotion_map = CHARACTER_CONFIG['emotion_map']
 
+    # --- NEW CLEANING FUNCTION ---
+    def _clean_text_for_tts(self, text: str) -> str:
+        """Removes bracketed actions and asterisks from text for clean TTS input."""
+        # This regex finds and removes patterns like *laughs*, [giggles], (sighs), etc.
+        # It handles asterisks, square brackets, and parentheses.
+        cleaned_text = re.sub(r'[\*\(\[]\w+[\*\)\]]', '', text)
+        # Remove any extra spaces that might be left over
+        return " ".join(cleaned_text.split())
+
     def _get_user_llm_choice(self) -> LLMProvider:
+        # ... (this function is unchanged)
         print("\n" + "="*50 + "\n Welcome to Project WaifuCore\n" + "="*50)
         prompt = "\nPlease select an LLM provider:\n  1. Groq (Fast, Cloud)\n  2. Ollama (Private, Local)\n  3. OpenAI (Paid, Cloud)\n\nEnter choice [1]: "
         while True:
@@ -45,7 +52,8 @@ class ConversationEngine:
             print("Invalid choice.")
     
     def _get_user_tts_choice(self) -> str:
-        prompt = "\nPlease select a TTS (Voice) provider:\n  1. Coqui TTS (High-Quality Voice Cloning, requires server)\n  2. Kokoro TTS (Fast, Local Library, built-in voice)\n\nEnter choice [1]: "
+        # ... (this function is unchanged)
+        prompt = "\nPlease select a TTS (Voice) provider:\n  1. Coqui TTS (High-Quality Voice Cloning)\n  2. Kokoro TTS (Fast, Local Library)\n\nEnter choice [1]: "
         while True:
             choice = input(prompt).strip() or "1"
             if choice == "1": return "coqui"
@@ -53,8 +61,7 @@ class ConversationEngine:
             print("Invalid choice.")
 
     async def run_turn(self, audio_filepath: str | None = None, text_input: str | None = None):
-        # This function's logic remains the same! The modular design pays off.
-        # ... (no changes needed here, copy from your existing working version)
+        # ... (listening and thinking parts are unchanged)
         self.state = CharacterState.LISTENING
         yield self.state, None, None, None
         
@@ -76,18 +83,28 @@ class ConversationEngine:
         yield self.state, None, None, None
         
         relevant_memories = self.memory_service.retrieve_relevant_memories(user_input)
-        emotion, ananya_text = await self.llm_service.generate_response(user_input, relevant_memories)
+        emotion, ananya_text_raw = await self.llm_service.generate_response(user_input, relevant_memories)
+
+        # --- MODIFICATION HERE ---
+        # 1. Clean the text before sending it to the TTS
+        ananya_text_for_tts = self._clean_text_for_tts(ananya_text_raw)
+
+        # 2. The chatbot UI should still show the full, expressive text with actions
+        ananya_text_for_ui = ananya_text_raw
 
         self.state = CharacterState.SPEAKING
         animation = self.emotion_map.get(emotion, self.emotion_map.get("default", {}))['animation']
-        yield self.state, ananya_text, None, animation
+        # Show the full expressive text in the UI
+        yield self.state, ananya_text_for_ui, None, animation
         
-        audio_output_bytes = await self.tts_service.synthesize(ananya_text, emotion)
+        # Synthesize audio using only the cleaned text
+        audio_output_bytes = await self.tts_service.synthesize(ananya_text_for_tts, emotion)
         
-        yield self.state, ananya_text, audio_output_bytes, animation
+        yield self.state, ananya_text_for_ui, audio_output_bytes, animation
         
+        # ... (memory extraction and idle state parts are unchanged)
         new_memories = await self.llm_service.extract_memories()
         self.memory_service.add_memories(new_memories)
 
         self.state = CharacterState.IDLE
-        yield self.state, ananya_text, audio_output_bytes, animation
+        yield self.state, ananya_text_for_ui, audio_output_bytes, animation

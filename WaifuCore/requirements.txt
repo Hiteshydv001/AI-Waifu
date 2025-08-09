@@ -25,3 +25,5 @@ fastapi==0.110.0
 pydantic==2.6.4
 
 TTS 
+
+transformers==4.36.2

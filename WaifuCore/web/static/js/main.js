@@ -13,6 +13,7 @@ class AnanyaViewer {
         
         this.initScene();
         this.loadModel();
+        this.animate = this.animate.bind(this); // Bind animate to the class instance
         this.animate();
 
         window.addEventListener("message", (event) => {
@@ -24,106 +25,69 @@ class AnanyaViewer {
 
     initScene() {
         this.scene = new THREE.Scene();
+        const canvas = document.getElementById('vrm-canvas');
+        if (!canvas) {
+            console.error("VRM Canvas not found in the DOM!");
+            return;
+        }
+        const container = document.getElementById('vrm-container');
         
-        // Wait for canvas to be available
-        const waitForCanvas = () => {
-            const canvas = document.getElementById('vrm-canvas');
-            if (!canvas) {
-                console.log('Waiting for VRM canvas...');
-                setTimeout(waitForCanvas, 100);
-                return;
-            }
-            
-            console.log('Canvas element found:', canvas);
-            console.log('Canvas dimensions:', canvas.clientWidth, 'x', canvas.clientHeight);
-            
-            this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-            
-            // Set proper canvas size
-            const container = document.getElementById('vrm-container');
-            const width = container ? container.clientWidth : 600;
-            const height = container ? container.clientHeight : 600;
-            
-            this.renderer.setSize(width, height);
-            this.renderer.setPixelRatio(window.devicePixelRatio);
-            
-            this.camera = new THREE.PerspectiveCamera(35, width / height, 0.1, 1000);
-            this.camera.position.set(0, 1.2, 2.5);
-
-            const light = new THREE.DirectionalLight(0xffffff);
-            light.position.set(1, 1, 1).normalize();
-            this.scene.add(light);
-            const ambient = new THREE.AmbientLight(0x404040, 2);
-            this.scene.add(ambient);
-
-            this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-            this.controls.target.set(0, 1.0, 0);
-            this.controls.update();
-            
-            // Handle window resize
-            window.addEventListener('resize', () => {
-                const newWidth = container ? container.clientWidth : 600;
-                const newHeight = container ? container.clientHeight : 600;
-                this.camera.aspect = newWidth / newHeight;
-                this.camera.updateProjectionMatrix();
-                this.renderer.setSize(newWidth, newHeight);
-            });
-        };
+        this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+        this.renderer.setSize(container.clientWidth, container.clientHeight);
+        this.renderer.setPixelRatio(window.devicePixelRatio);
         
-        waitForCanvas();
+        this.camera = new THREE.PerspectiveCamera(35, container.clientWidth / container.clientHeight, 0.1, 1000);
+        this.camera.position.set(0, 1.3, 2.2);
+
+        const light = new THREE.DirectionalLight(0xffffff, Math.PI);
+        light.position.set(1, 1, 1).normalize();
+        this.scene.add(light);
+        const ambient = new THREE.AmbientLight(0x404040, Math.PI * 1.5);
+        this.scene.add(ambient);
+
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.target.set(0, 1.05, 0);
+        this.controls.update();
+
+        window.addEventListener('resize', () => {
+            this.camera.aspect = container.clientWidth / container.clientHeight;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(container.clientWidth, container.clientHeight);
+        });
     }
 
     loadModel() {
         console.log('Starting VRM model load...');
         const loader = new GLTFLoader();
         
-        // List of paths to try
-        const vrmPaths = [
-            '/file/static/vrm/ananya.vrm',  // Gradio file serving path
-            'static/vrm/ananya.vrm',        // Direct static path
-            './static/vrm/ananya.vrm',      // Relative path
-            '/static/vrm/ananya.vrm'        // Absolute static path
-        ];
+        // --- THIS IS THE CORRECTED PATH LOGIC ---
+        // Gradio serves static files from a '/file=' path.
+        // We construct the full URL to the file.
+        const modelUrl = new URL('/file=static/vrm/ananya.vrm', window.location.href).href;
+        console.log(`Attempting to load VRM from: ${modelUrl}`);
         
-        const tryLoadVRM = (pathIndex = 0) => {
-            if (pathIndex >= vrmPaths.length) {
-                console.error('All VRM loading paths failed');
-                return;
+        loader.load(modelUrl, 
+            (gltf) => {
+                THREE_VRM.VRMUtils.removeUnnecessaryJoints(gltf.scene);
+                THREE_VRM.VRM.from(gltf).then((vrm) => {
+                    this.vrm = vrm;
+                    this.scene.add(vrm.scene);
+                    console.log('✅ Ananya VRM model loaded and added to scene!');
+                });
+            },
+            (progress) => {
+                const percent = (progress.loaded / progress.total * 100).toFixed(1);
+                console.log(`Loading VRM model... ${percent}%`);
+            },
+            (error) => {
+                console.error("❌ Failed to load VRM model. Check the following:\n1. Is 'ananya.vrm' present in 'web/static/vrm/'?\n2. Are there any errors in the browser's Network tab?\nError details:", error);
             }
-            
-            const currentPath = vrmPaths[pathIndex];
-            console.log(`Trying to load VRM from: ${currentPath}`);
-            
-            loader.load(currentPath, 
-                (gltf) => {
-                    console.log('GLTF loaded successfully:', gltf);
-                    THREE_VRM.VRMUtils.removeUnnecessaryJoints(gltf.scene);
-                    THREE_VRM.VRM.from(gltf).then((vrm) => {
-                        this.vrm = vrm;
-                        this.scene.add(vrm.scene);
-                        console.log('Ananya VRM model loaded and added to scene!');
-                    }).catch((vrmError) => {
-                        console.error('VRM parsing error:', vrmError);
-                        tryLoadVRM(pathIndex + 1);
-                    });
-                },
-                (progress) => {
-                    const percent = (progress.loaded / progress.total * 100).toFixed(1);
-                    console.log(`Loading VRM model from ${currentPath}... ${percent}%`);
-                },
-                (error) => {
-                    console.error(`Failed to load VRM from ${currentPath}:`, error);
-                    tryLoadVRM(pathIndex + 1);
-                }
-            );
-        };
-        
-        tryLoadVRM();
+        );
     }
 
     handleStateUpdate(payload) {
         if (!this.vrm) return;
-        const { state, animation } = payload;
+        const { state } = payload;
         this.lipSyncTarget = (state === 'speaking') ? 1.0 : 0.0;
     }
 
@@ -135,40 +99,25 @@ class AnanyaViewer {
     }
 
     animate() {
-        requestAnimationFrame(() => this.animate());
+        requestAnimationFrame(this.animate);
         const delta = this.clock.getDelta();
         
         if (this.vrm) {
             this.vrm.update(delta);
-            this.updateLipSync(delta);
         }
         
-        this.renderer.render(this.scene, this.camera);
+        // Update lip sync regardless of vrm update, to ensure it closes
+        this.updateLipSync(delta);
+        
+        if(this.renderer && this.camera) {
+           this.renderer.render(this.scene, this.camera);
+        }
     }
 }
 
-// Initialize VRM viewer when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM Content Loaded, initializing VRM viewer...');
+// Initialize VRM viewer when the Gradio app is fully mounted and ready
+// We listen for the 'gradio:loaded' event on the document body
+document.body.addEventListener('gradio:loaded', () => {
+    console.log('Gradio has loaded, initializing VRM viewer...');
     new AnanyaViewer();
-});
-
-// Fallback for Gradio dynamic loading
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        const canvas = document.getElementById('vrm-canvas');
-        if (!canvas) {
-            console.log('Canvas not found on load, retrying...');
-            new AnanyaViewer();
-        }
-    }, 1000);
-});
-
-// Additional fallback for message origin issues
-window.addEventListener('message', (event) => {
-    // Filter out cross-origin messages that aren't ours
-    if (event.origin !== window.location.origin && 
-        event.data.type !== 'ananya_state_update') {
-        return; // Ignore cross-origin messages
-    }
 });

@@ -49,11 +49,11 @@ class LLMService:
     async def generate_response(self, user_input: str, memories: list[str]) -> tuple[str, str]:
         print("🧠 Thinking...")
         
-        # Prepare memory context
-        memory_context = "You remember these facts about Senpai:\n- " + "\n- ".join(memories) if memories else ""
+        # Prepare memory context (no "Senpai" here)
+        memory_context = "You remember these facts about the user:\n- " + "\n- ".join(memories) if memories else ""
         
-        # Add user input to history
-        full_user_input = f"{memory_context}\n\nSenpai says: {user_input}".strip()
+        # Add user input to history (no "Senpai says:" here)
+        full_user_input = f"{memory_context}\n\nUser: {user_input}".strip()
         self.history.append({"role": "user", "content": full_user_input})
 
         response = await self.client.chat.completions.create(
@@ -80,7 +80,6 @@ class LLMService:
 
     async def extract_memories(self) -> list[str]:
         print("📝 Checking for new memories...")
-        # Get the last few turns of conversation
         conversation_log = "\n".join([f"{msg['role']}: {msg['content']}" for msg in self.history[-4:]])
         
         prompt = self.character['memory_extraction_prompt'].format(conversation_log=conversation_log)
@@ -94,9 +93,12 @@ class LLMService:
         content = response.choices[0].message.content
         try:
             # The LLM should return a string representation of a list
-            extracted_facts = ast.literal_eval(content)
-            if isinstance(extracted_facts, list):
-                return extracted_facts
+            # Find the list within the response text
+            list_match = re.search(r'\[.*\]', content, re.DOTALL)
+            if list_match:
+                extracted_facts = ast.literal_eval(list_match.group(0))
+                if isinstance(extracted_facts, list):
+                    return extracted_facts
         except (ValueError, SyntaxError):
             print(f"Could not parse memory extraction response: {content}")
         

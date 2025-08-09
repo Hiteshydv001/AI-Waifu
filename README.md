@@ -1,160 +1,134 @@
-## AI Waifu (WaifuCore) – Ananya
+# Project Ananya - AI Waifu Core
 
-An interactive AI companion with voice and text, built around a modular engine that stitches together:
+Project Ananya is an interactive, voice-driven AI companion. She listens, responds, and remembers your conversations, brought to life by a modular engine that combines state-of-the-art AI technologies. The default persona, Ananya, is a warm, witty, and culturally-aware friend who speaks a natural mix of English and Hinglish.
 
-- **LLM**: OpenAI, Groq (OpenAI-compatible), or local Ollama
-- **ASR**: faster-whisper for speech-to-text
-- **TTS**: Coqui TTS (voice cloning) or Kokoro TTS (fast, high‑quality built-in voices)
-- **Memory**: ChromaDB for long‑term, retrievable memories
-- **UI**: Gradio web app with a 3D avatar hook
+This project serves as an advanced framework (WaifuCore) for building personalized AI companions.
 
-The default character is **Ananya**, a warm, witty, Hinglish-speaking companion.
+![UI Screenshot](httpskindly_provide_a_screenshot_of_the_UI_here)
 
 ---
 
-### Features
-- **Choice of LLM** at runtime: Groq, Ollama, or OpenAI
-- **Two TTS backends**: Coqui XTTS (voice cloning) or Kokoro (fast local synthesis)
-- **Streaming UI** with mic input and auto‑playing TTS output
-- **Long‑term memory** via ChromaDB and conversation history persistence
-- **Config‑driven** behaviors and persona in `WaifuCore/config/*.yaml`
+### ✨ Features
+
+-   **Multi-Backend LLM:** Choose your "brain" at runtime. Supports ultra-fast **Groq**, private **Ollama** (local), and powerful **OpenAI** models.
+-   **Dual TTS Engines:**
+    -   **Coqui TTS (XTTS v2):** For high-quality, zero-shot voice cloning from a single audio sample. This is what gives Ananya her unique voice.
+    -   **Kokoro TTS:** For an extremely fast, lightweight, and fully local TTS experience with a high-quality built-in voice.
+-   **Real-time Interaction:** Features a responsive Gradio UI with streaming microphone input and auto-playing audio responses.
+-   **Long-Term Memory:** Ananya remembers key facts from your conversations using a ChromaDB vector store, giving her a persistent memory.
+-   **Dynamic 3D Avatar:** A placeholder for a VRM 3D model with live lip-syncing that reacts when she speaks.
+-   **Deeply Configurable Persona:** Ananya's entire personality, from her system prompt to her emotional responses, is defined in simple YAML configuration files.
 
 ---
 
-### Repository Layout
-- `WaifuCore/web/main_web.py` – Gradio app entrypoint
-- `WaifuCore/waifu_core/engine.py` – Conversation loop and service wiring
-- `WaifuCore/waifu_core/services/*` – ASR, LLM, Memory, TTS services
-- `WaifuCore/config/services.yaml` – API keys and service configs
-- `WaifuCore/config/character.yaml` – Persona, memory extraction prompt, emotion→animation map
-- `WaifuCore/models/kokoro/` – Kokoro model weights (not committed; see setup)
-- `WaifuCore/assets/character_voices/` – Reference voice for Coqui
+### 🛠️ Tech Stack
+
+-   **UI:** Gradio
+-   **ASR (Speech-to-Text):** faster-whisper
+-   **TTS (Text-to-Speech):** Coqui TTS or Kokoro TTS
+-   **LLM (Language Model):** Groq / Ollama / OpenAI
+-   **Memory:** ChromaDB
 
 ---
 
-### Prerequisites
-- Python 3.10–3.12 recommended (3.13 can have package issues; `numpy` is pinned out in `requirements.txt`)
-- Windows, macOS, or Linux
-- (Optional, GPU) NVIDIA CUDA for faster Whisper and TTS
+### 📂 Project Structure
 
-TTS extras:
-- **Kokoro**: Requires the Kokoro model files present locally
-- **Coqui TTS (XTTS v2)**: Downloads automatically via the library; a single reference voice WAV is required for cloning
-
----
-
-### Installation
-1) Clone and open the project
-
-```powershell
-git clone https://github.com/<your-username>/<your-repo>.git
-cd "AI Girlie"
-```
-
-2) Create a virtual environment and install dependencies
-
-```powershell
-cd WaifuCore
-python -m venv venv
-venv\Scripts\activate
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-Notes (Windows):
-- If `pyaudio` fails to install, try: `pip install pipwin` then `pipwin install pyaudio`.
-- If you do not have CUDA, set ASR to CPU in `config/services.yaml`:
-  - `asr.device: "cpu"`
-  - `asr.compute_type: "int8"`
+-   `config/`: All project configuration.
+    -   `character.yaml`: Defines Ananya's persona, system prompt, and memory extraction rules.
+    -   `services.yaml`: Holds API keys and configurations for all backend services.
+-   `waifu_core/`: The core Python application package.
+    -   `engine.py`: The central orchestrator that manages the conversation flow.
+    -   `services/`: Modular classes for each AI service (ASR, LLM, Memory, and the swappable TTS engines).
+-   `web/`: The Gradio frontend application.
+    -   `main_web.py`: The entry point for the web UI.
+    -   `static/`: Contains the 3D model (`ananya.vrm`), JavaScript for the viewer, and CSS.
+-   `assets/character_voices/`: Contains the reference audio file (`.wav`) used by Coqui TTS for voice cloning.
+-   `models/kokoro/`: (Local Only) Contains the downloaded Kokoro TTS model files.
 
 ---
 
-### Configuration
-Edit `WaifuCore/config/services.yaml`:
+### 🚀 Getting Started
 
-- **API keys**
-  - `openai_api_key`: set if using OpenAI
-  - `groq_api_key`: set if using Groq (OpenAI-compatible endpoint)
-  - Ollama requires no key but needs the local server running at `http://localhost:11434`
+#### Prerequisites
 
-- **LLM**
-  - Default models are set for each provider. You’ll choose the provider at runtime in the terminal.
+-   Python `3.11` is strongly recommended. (3.10 and 3.12 are okay, but 3.13+ may have package compatibility issues).
+-   An NVIDIA GPU with CUDA is highly recommended for good performance.
+-   (For Kokoro) `espeak-ng` system dependency.
+    -   On Debian/Ubuntu: `sudo apt-get update && sudo apt-get install espeak-ng`
+    -   On Windows: [Download and run the installer](https://github.com/espeak-ng/espeak-ng/releases).
 
-- **ASR (faster-whisper)**
-  - `model_size`: base/small/medium/large-v3
-  - `device`: `cuda` or `cpu`
-  - `compute_type`: `float16` (GPU) or `int8` (CPU)
+#### Installation
 
-- **Memory (ChromaDB)**
-  - `db_path`: defaults to `waifu_core/local_db` inside `WaifuCore`
-
-- **TTS**
-  - `tts.coqui.reference_voice`: path to a single WAV file used for voice cloning
-  - `tts.kokoro.model_dir`: folder with Kokoro model files
-  - `tts.kokoro.voice`: e.g., `af_heart`
-
-Edit `WaifuCore/config/character.yaml` to customize Ananya’s persona, memory extraction prompt, and emotion→animation mapping.
-
----
-
-### TTS Backends
-- **Kokoro (fast local TTS)**
-  - Place the model files in `WaifuCore/models/kokoro/`:
-    - `kokoro-v1_0.pth`
-    - `config.json`
-  - These files are large and are intentionally not tracked in Git. The code will error with a clear message if they’re missing.
-
-- **Coqui TTS (XTTS v2, voice cloning)**
-  - Ensure you have a reference voice WAV at `WaifuCore/assets/character_voices/ananya_happy.wav` (or update the path in `services.yaml`).
-  - The library will download model files on first use. You can also prefetch using:
-    ```powershell
-    python download_tts_model.py
+1.  **Clone the Repository:**
+    ```bash
+    git clone <your-repo-url>
+    cd hiteshydv001-ai-waifu
     ```
 
+2.  **Create and Activate a Virtual Environment:**
+    ```powershell
+    # Windows
+    python -m venv venv
+    .\venv\Scripts\Activate.ps1
+    ```
+    ```bash
+    # Linux / macOS
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+
+3.  **Install Dependencies:**
+    ```bash
+    pip install --upgrade pip
+    pip install -r requirements.txt
+    ```
+
+#### Configuration
+
+Before running, configure your services in `config/services.yaml`:
+
+1.  **API Keys:** Fill in your `groq_api_key` and/or `openai_api_key` if you plan to use them.
+2.  **ASR Device:** By default, ASR (`faster-whisper`) is set to use `cuda`. If you do not have an NVIDIA GPU, change it to CPU mode:
+    ```yaml
+    asr:
+      device: "cpu"
+      compute_type: "int8"
+    ```
+3.  **TTS Setup:**
+    *   **For Coqui TTS (Voice Cloning):** Make sure you have a high-quality, short `.wav` file in `assets/character_voices/`. The default is `ananya_reference.wav`. Update the path in `services.yaml` if you use a different name.
+    *   **For Kokoro TTS:** Download the model files (`kokoro-v1_0.pth` and `config.json`) from [Hugging Face](https://huggingface.co/hexgrad/Kokoro-82M/tree/main) and place them in the `models/kokoro/` directory.
+
+#### Running the Application
+
+1.  **Start Local Services (If using Ollama):**
+    *   Make sure your Ollama server is running. In a separate terminal, run: `ollama serve`.
+    *   Ensure you have pulled the model specified in the config: `ollama pull llama3`.
+
+2.  **Launch the Main Application:**
+    *   Make sure you are in the project's root directory (`hiteshydv001-ai-waifu`) and your `(venv)` is active.
+    *   Run the app as a module:
+        ```bash
+        python -m WaifuCore.web.main_web
+        ```
+
+3.  **Choose Your Backends:**
+    *   The application will prompt you in the terminal to select your desired LLM and TTS provider for the session.
+
+4.  **Open the UI:**
+    *   Open your web browser and navigate to the URL shown in the terminal (usually `http://127.0.0.1:7860`).
+
 ---
 
-### Running the App
-1) Activate your venv and ensure dependencies are installed
+### 🎨 Customization
 
-2) Start the Gradio UI (run from inside `WaifuCore` so relative paths resolve):
-
-```powershell
-cd WaifuCore
-venv\Scripts\activate
-python web/main_web.py
-```
-
-3) On launch, choose the LLM and TTS provider in the terminal prompts.
-
-4) Open the app at `http://127.0.0.1:7860`.
-
-You can speak via the mic or type messages. The assistant replies with text and synthesized speech. Conversation history is saved at `waifu_core/conversation_history_ananya.json`. Long‑term memory is stored in Chroma at `waifu_core/local_db`.
+-   **Change the Persona:** Edit `config/character.yaml` to change Ananya's name, system prompt, and personality.
+-   **Change the Voice:**
+    -   **Coqui:** Replace the file in `assets/character_voices/` with a sample of your desired voice and update the path in `services.yaml`.
+    -   **Kokoro:** Change the `voice` key in `services.yaml` to any of the built-in voices (e.g., `af_bella`, `am_michael`).
+-   **Change the Avatar:** Replace the `ananya.vrm` file in `web/static/vrm/` with your own VRM model, which you can create for free using [VRoid Studio](https://vroid.com/en/studio).
 
 ---
 
-### Ollama (Local LLM)
-- Install Ollama and start the server: `ollama serve`
-- Pull a model that matches your config (e.g., `ollama pull llama3`)
-- Keep `services.yaml` LLM settings as provided; the app uses an OpenAI‑compatible client with `base_url` pointing to Ollama.
+### 📜 License
 
----
-
-### Troubleshooting
-- **Large model files in Git**: Large Kokoro model files are intentionally ignored. Keep them local under `WaifuCore/models/kokoro/`.
-- **ASR too slow / high VRAM**: Switch to `asr.device: cpu` and `compute_type: int8`. Try a smaller `model_size`.
-- **No CUDA**: Set ASR to CPU and use Kokoro/Coqui on CPU (slower). The app detects CUDA where possible.
-- **PyAudio install fails (Windows)**: Use `pipwin install pyaudio`.
-- **Ollama not responding**: Ensure `ollama serve` is running and the model is pulled. The base URL is `http://localhost:11434/v1`.
-- **Cert issues on Windows**: The web app sets `SSL_CERT_FILE` using `certifi` if available, or falls back to unverified SSL context.
-
----
-
-### Security
-- Do not commit your API keys. They live in `WaifuCore/config/services.yaml` locally.
-
----
-
-### License and Credits
-- Built with OpenAI/Groq/Ollama, faster‑whisper, Kokoro, Coqui TTS, ChromaDB, and Gradio.
-- Character and UI assets are placeholders; replace with your own as needed.
-
+This project is open-source. Please check the licenses of the respective AI models and libraries used.
