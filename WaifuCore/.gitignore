@@ -24,6 +24,7 @@ wheels/
 WaifuCore/models/kokoro/kokoro-v1_0.pth
 
 
+*.pth
 
 # Virtual environments
 venv/
