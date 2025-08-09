@@ -22,6 +22,8 @@ wheels/
 .pth
 
 WaifuCore/models/kokoro/kokoro-v1_0.pth
+WaifuCore/models/kokoro/*.pth
+WaifuCore/models/kokoro/*.json
 
 
 *.pth
@@ -56,4 +58,5 @@ Thumbs.db
 
 # API keys and secrets
 .env
+../.env
 config/secrets.yaml 

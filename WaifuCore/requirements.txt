@@ -11,6 +11,7 @@ chromadb            # Vector database for long-term memory
 # Web Framework & Utilities
 httpx             # For async API calls
 PyYAML
+certifi
 
 # numpy>=1.26.0  # Temporarily commented out due to Python 3.13 compatibility issues
 

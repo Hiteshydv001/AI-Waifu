@@ -1,5 +1,5 @@
 openai_api_key: "sk-YOUR_OPENAI_KEY"
-groq_api_key: "REDACTED_GROQ_KEY"
+groq_api_key: ""
 
 # --- Service Configurations ---
 llm:

@@ -1,6 +1,7 @@
 # waifu_core/services/llm_service.py
 import json
 import re
+import os
 from pathlib import Path
 from openai import AsyncOpenAI
 from waifu_core.models import LLMProvider
@@ -10,6 +11,36 @@ import ast
 SERVICE_CONFIG = yaml.safe_load(Path("config/services.yaml").read_text())
 CHARACTER_CONFIG = yaml.safe_load(Path("config/character.yaml").read_text())
 
+
+def _load_dotenv_if_present() -> None:
+    """Lightweight .env loader (no extra dependency).
+
+    Looks for a .env in WaifuCore/ or repo root and exports vars that are not already set.
+    """
+    candidate_paths = [
+        Path("WaifuCore/.env"),
+        Path(".env"),
+        Path(__file__).resolve().parents[2] / ".env",  # repo root
+        Path(__file__).resolve().parents[1] / ".env",  # WaifuCore/.env
+    ]
+    for env_path in candidate_paths:
+        try:
+            if env_path.exists():
+                for line in env_path.read_text(encoding="utf-8").splitlines():
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    if "=" not in line:
+                        continue
+                    key, value = line.split("=", 1)
+                    key = key.strip()
+                    value = value.strip().strip('"').strip("'")
+                    os.environ.setdefault(key, value)
+                break
+        except Exception:
+            # Non-fatal; just skip if any parsing error
+            pass
+
 class LLMService:
     def __init__(self, provider: LLMProvider):
         print(f"Initializing LLM Service with provider: {provider.value.upper()}")
@@ -17,17 +48,20 @@ class LLMService:
         self.character = CHARACTER_CONFIG
         self.provider = provider
         
+        # Load .env (non-intrusive; ignores if missing)
+        _load_dotenv_if_present()
+
         api_key = None
         base_url = None
 
         if self.provider == LLMProvider.GROQ:
-            api_key = SERVICE_CONFIG['groq_api_key']
-            base_url="https://api.groq.com/openai/v1"
+            api_key = os.environ.get("GROQ_API_KEY") or SERVICE_CONFIG.get('groq_api_key')
+            base_url = "https://api.groq.com/openai/v1"
         elif self.provider == LLMProvider.OLLAMA:
-            api_key="ollama"
-            base_url="http://localhost:11434/v1"
+            api_key = "ollama"
+            base_url = "http://localhost:11434/v1"
         elif self.provider == LLMProvider.OPENAI:
-            api_key = SERVICE_CONFIG['openai_api_key']
+            api_key = os.environ.get("OPENAI_API_KEY") or SERVICE_CONFIG.get('openai_api_key')
         
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url)
         

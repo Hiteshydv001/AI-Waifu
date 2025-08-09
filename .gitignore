@@ -1,0 +1,21 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Model artifacts (do not commit large files)
+WaifuCore/models/kokoro/*.pth
+WaifuCore/models/kokoro/*.json
+
+# Virtual environments
+WaifuCore/venv/
+venv/
+ENV/
+env/
+
+# OS
+.DS_Store
+Thumbs.db

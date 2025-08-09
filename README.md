@@ -85,9 +85,14 @@ This project serves as an advanced framework (WaifuCore) for building personaliz
 
 #### Configuration
 
-Before running, configure your services in `config/services.yaml`:
+Before running, configure your services in `config/services.yaml` and set API keys through a `.env` file (preferred):
 
-1.  **API Keys:** Fill in your `groq_api_key` and/or `openai_api_key` if you plan to use them.
+1.  **API Keys (Preferred via .env):** Create `.env` at the repo root (or `WaifuCore/.env`) with:
+    ```
+    OPENAI_API_KEY=sk-...
+    GROQ_API_KEY=gsk-...
+    ```
+    The app loads `.env` automatically and also supports fallback values in `config/services.yaml` (keep them blank in Git).
 2.  **ASR Device:** By default, ASR (`faster-whisper`) is set to use `cuda`. If you do not have an NVIDIA GPU, change it to CPU mode:
     ```yaml
     asr:
