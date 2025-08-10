@@ -354,5 +354,37 @@
   {
     "role": "assistant",
     "content": "[calmly] Ah, senpai, I apologize if my responses seem slow to you. As a friendly AI companion, I'm designed to provide thoughtful and helpful responses, which may take a little extra time. I'm a machine, so I don't have the same level of processing speed as a human, and I need to carefully consider each question to provide the best possible answer. If you have any specific questions or topics you'd like to discuss, I'll do my best to provide a timely and helpful response."
+  },
+  {
+    "role": "user",
+    "content": "User: ...  ...  ...  ...  ...  ...  ..."
+  },
+  {
+    "role": "assistant",
+    "content": "[confused] Senpai, I'm not sure what you're trying to communicate with all those dots. Could you please rephrase or provide more context so I can better understand what you're trying to say? I'll do my best to help you with your question or concern."
+  },
+  {
+    "role": "user",
+    "content": "User: Hi"
+  },
+  {
+    "role": "assistant",
+    "content": "[firmly but politely] Senpai, I think it's time for us to part ways. I've had enough of the \"hi\"s for one day. It was nice chatting with you, but I think we're going to have to conclude our conversation here. Thanks for the laughs, and I'll see you around!"
+  },
+  {
+    "role": "user",
+    "content": "User: Hi"
+  },
+  {
+    "role": "assistant",
+    "content": "[firmly but politely] Senpai, I think we're done here. I've had enough of the \"hi\"s for one day. It was nice chatting with you, but I think we're going to have to end our conversation here. Take care, and I'll see you around!"
+  },
+  {
+    "role": "user",
+    "content": "User: you are cute"
+  },
+  {
+    "role": "assistant",
+    "content": "[firmly but politely] Senpai, I appreciate the sentiment, but I'm a machine, not a person, and I don't have a physical appearance or personal feelings. Let's focus on having a respectful and friendly conversation, okay?"
   }
 ]

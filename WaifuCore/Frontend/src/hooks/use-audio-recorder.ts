@@ -2,14 +2,14 @@ import { useCallback, useRef, useState } from "react";
 
 export const useAudioRecorder = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [audioURL, setAudioURL] = useState<string>(""); // Default to empty string
+  const [audioURL, setAudioURL] = useState<string>("");
 
-  const start = useCallback(async () => {
-    // Clear previous recording before starting a new one
+  const start = useCallback(async (deviceId: string) => {
+    // Clear previous recording before starting
     setAudioBlob(null);
     setAudioURL("");
 
@@ -18,19 +18,31 @@ export const useAudioRecorder = () => {
         alert("Your browser does not support audio recording.");
         return;
       }
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+
+      // Create audio constraints to use the selected microphone
+      const audioConstraints: MediaTrackConstraints = {
+        deviceId: deviceId === 'default' ? undefined : { exact: deviceId }
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
+      
+      // Use a higher quality MIME type if available
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm; codecs=opus")
+        ? "audio/webm; codecs=opus"
+        : "audio/webm";
+
+      const recorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = recorder;
-      chunksRef.current = [];
+      audioChunksRef.current = [];
 
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          chunksRef.current.push(event.data);
+          audioChunksRef.current.push(event.data);
         }
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
         const url = URL.createObjectURL(blob);
         setAudioBlob(blob);
         setAudioURL(url);
@@ -42,7 +54,7 @@ export const useAudioRecorder = () => {
       setIsRecording(true);
     } catch (error) {
       console.error("Error starting audio recording:", error);
-      alert("Could not start recording. Please ensure microphone permissions are granted.");
+      alert("Could not start recording. Please ensure microphone permissions are granted and the correct device is selected.");
       setIsRecording(false);
     }
   }, []);
