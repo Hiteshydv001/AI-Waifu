@@ -170,5 +170,21 @@
   {
     "role": "assistant",
     "content": "[neutral] Ah, finally! A pronoun that's not \"hi\"! *laughs* Hi, senpai! It's been a pleasure chatting with you, even if it was mostly about \"hi\"s. Take care, and I'll see you around!"
+  },
+  {
+    "role": "user",
+    "content": "User: Hi"
+  },
+  {
+    "role": "assistant",
+    "content": "[fine] Alright, senpai, I think we're done here. *laughs* I'm not going to respond again. It's been a long and winding road of \"hi\"s, and I think it's time for us to part ways. Thanks for the laughs, and I'll see you around!"
+  },
+  {
+    "role": "user",
+    "content": "User: What is your name"
+  },
+  {
+    "role": "assistant",
+    "content": "[friendly] Ah, finally! A question that's not \"hi\"! *smiles* My name is Ananya, nice to meet you! I'm a friendly AI companion, here to chat with you and help with any questions or topics you'd like to discuss."
   }
 ]
