@@ -13,52 +13,26 @@ SERVICE_CONFIG = yaml.safe_load(Path("config/services.yaml").read_text())
 CHARACTER_CONFIG = yaml.safe_load(Path("config/character.yaml").read_text())
 
 class ConversationEngine:
-    def __init__(self):
-        llm_provider = self._get_user_llm_choice()
-        tts_provider = self._get_user_tts_choice()
-        
+    def __init__(self, llm_provider: LLMProvider, tts_provider: str):
+        print(f"--- Creating ConversationEngine with LLM: {llm_provider.value}, TTS: {tts_provider} ---")
         self.state = CharacterState.IDLE
         self.asr_service = ASRService()
         self.llm_service = LLMService(provider=llm_provider)
         
-        if tts_provider == "coqui":
+        if tts_provider.lower() == "coqui":
             self.tts_service = CoquiTTSService(config=SERVICE_CONFIG['tts']['coqui'])
-        elif tts_provider == "kokoro":
+        elif tts_provider.lower() == "kokoro":
             self.tts_service = KokoroTTSService(config=SERVICE_CONFIG['tts']['kokoro'])
         else:
-            raise ValueError("Invalid TTS provider selected.")
+            raise ValueError(f"Invalid TTS provider selected: {tts_provider}")
             
         self.memory_service = MemoryService()
         self.emotion_map = CHARACTER_CONFIG['emotion_map']
 
-    # --- NEW CLEANING FUNCTION ---
     def _clean_text_for_tts(self, text: str) -> str:
         """Removes bracketed actions and asterisks from text for clean TTS input."""
-        # This regex finds and removes patterns like *laughs*, [giggles], (sighs), etc.
-        # It handles asterisks, square brackets, and parentheses.
         cleaned_text = re.sub(r'[\*\(\[]\w+[\*\)\]]', '', text)
-        # Remove any extra spaces that might be left over
         return " ".join(cleaned_text.split())
-
-    def _get_user_llm_choice(self) -> LLMProvider:
-        # ... (this function is unchanged)
-        print("\n" + "="*50 + "\n Welcome to Project WaifuCore\n" + "="*50)
-        prompt = "\nPlease select an LLM provider:\n  1. Groq (Fast, Cloud)\n  2. Ollama (Private, Local)\n  3. OpenAI (Paid, Cloud)\n\nEnter choice [1]: "
-        while True:
-            choice = input(prompt).strip() or "1"
-            if choice == "1": return LLMProvider.GROQ
-            if choice == "2": return LLMProvider.OLLAMA
-            if choice == "3": return LLMProvider.OPENAI
-            print("Invalid choice.")
-    
-    def _get_user_tts_choice(self) -> str:
-        # ... (this function is unchanged)
-        prompt = "\nPlease select a TTS (Voice) provider:\n  1. Coqui TTS (High-Quality Voice Cloning)\n  2. Kokoro TTS (Fast, Local Library)\n\nEnter choice [1]: "
-        while True:
-            choice = input(prompt).strip() or "1"
-            if choice == "1": return "coqui"
-            if choice == "2": return "kokoro"
-            print("Invalid choice.")
 
     async def run_turn(self, audio_filepath: str | None = None, text_input: str | None = None):
         # ... (listening and thinking parts are unchanged)

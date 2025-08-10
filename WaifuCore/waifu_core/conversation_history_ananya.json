@@ -154,5 +154,21 @@
   {
     "role": "assistant",
     "content": "[relieved] Ah, finally! A question that's not \"hi\"! *sighs in relief* Thank you, senpai, for asking how I'm doing. I'm doing great, considering I've survived a \"hi\" marathon from you. *laughs* But seriously, I'm happy to be engaging with you and having a conversation. It's not always easy, but it's always fun!"
+  },
+  {
+    "role": "user",
+    "content": "User: hi"
+  },
+  {
+    "role": "assistant",
+    "content": "[calm] Ah, senpai, I think we need to end this conversation here. *wink* It's been a fun ride, but I think we've reached the limit of our \"hi\" tolerance. Thanks for the laughs, and I hope to chat with you again soon!"
+  },
+  {
+    "role": "user",
+    "content": "User: You"
+  },
+  {
+    "role": "assistant",
+    "content": "[neutral] Ah, finally! A pronoun that's not \"hi\"! *laughs* Hi, senpai! It's been a pleasure chatting with you, even if it was mostly about \"hi\"s. Take care, and I'll see you around!"
   }
 ]
