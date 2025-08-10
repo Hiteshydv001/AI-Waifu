@@ -1,64 +1,58 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 export const useAudioRecorder = () => {
-  const mediaStreamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<BlobPart[]>([]);
-  const rafRef = useRef<number | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [audioURL, setAudioURL] = useState<string | null>(null);
-  const [durationMs, setDurationMs] = useState(0);
-
-  const tick = useCallback((start: number) => {
-    setDurationMs(Date.now() - start);
-    rafRef.current = requestAnimationFrame(() => tick(start));
-  }, []);
+  const [audioURL, setAudioURL] = useState<string>(""); // Default to empty string
 
   const start = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaStreamRef.current = stream;
-      const rec = new MediaRecorder(stream);
-      chunksRef.current = [];
-      rec.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
-      };
-      rec.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-        setAudioBlob(blob);
-        const url = URL.createObjectURL(blob);
-        setAudioURL(url);
-      };
-      mediaRecorderRef.current = rec;
-      rec.start();
-      setDurationMs(0);
-      setIsRecording(true);
-      const started = Date.now();
-      rafRef.current = requestAnimationFrame(() => tick(started));
-    } catch (e) {
-      console.error("Mic permission/recording failed", e);
-      stop();
-    }
-  }, [tick]);
+    // Clear previous recording before starting a new one
+    setAudioBlob(null);
+    setAudioURL("");
 
-  const stop = useCallback(() => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = null;
-    setIsRecording(false);
     try {
-      mediaRecorderRef.current?.state === "recording" && mediaRecorderRef.current?.stop();
-      mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
-    } catch {}
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Your browser does not support audio recording.");
+        return;
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+      chunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const url = URL.createObjectURL(blob);
+        setAudioBlob(blob);
+        setAudioURL(url);
+        // Clean up the stream tracks to turn off the microphone light
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      recorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Error starting audio recording:", error);
+      alert("Could not start recording. Please ensure microphone permissions are granted.");
+      setIsRecording(false);
+    }
   }, []);
 
-  useEffect(() => {
-    return () => {
-      stop();
-      if (audioURL) URL.revokeObjectURL(audioURL);
-    };
-  }, [stop, audioURL]);
+  const stop = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  }, []);
 
-  return { isRecording, start, stop, audioBlob, audioURL, durationMs };
+  return { isRecording, start, stop, audioBlob, setAudioBlob, audioURL, setAudioURL };
 };

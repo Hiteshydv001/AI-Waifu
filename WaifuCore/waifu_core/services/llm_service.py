@@ -11,35 +11,28 @@ import ast
 SERVICE_CONFIG = yaml.safe_load(Path("config/services.yaml").read_text())
 CHARACTER_CONFIG = yaml.safe_load(Path("config/character.yaml").read_text())
 
-
 def _load_dotenv_if_present() -> None:
-    """Lightweight .env loader (no extra dependency).
-
-    Looks for a .env in WaifuCore/ or repo root and exports vars that are not already set.
-    """
-    candidate_paths = [
-        Path("WaifuCore/.env"),
-        Path(".env"),
-        Path(__file__).resolve().parents[2] / ".env",  # repo root
-        Path(__file__).resolve().parents[1] / ".env",  # WaifuCore/.env
+    current_dir = Path(__file__).resolve().parent
+    candidate_dirs = [
+        current_dir,
+        current_dir.parent,
+        current_dir.parent.parent,
+        current_dir.parent.parent.parent,
     ]
-    for env_path in candidate_paths:
-        try:
-            if env_path.exists():
-                for line in env_path.read_text(encoding="utf-8").splitlines():
-                    line = line.strip()
-                    if not line or line.startswith("#"):
-                        continue
-                    if "=" not in line:
-                        continue
-                    key, value = line.split("=", 1)
-                    key = key.strip()
-                    value = value.strip().strip('"').strip("'")
-                    os.environ.setdefault(key, value)
-                break
-        except Exception:
-            # Non-fatal; just skip if any parsing error
-            pass
+    for directory in candidate_dirs:
+        env_path = directory / ".env"
+        if env_path.exists():
+            print(f"--- Found .env file at: {env_path} ---")
+            for line in env_path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if not line or line.startswith("#"): continue
+                if "=" not in line: continue
+                key, value = line.split("=", 1)
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                os.environ.setdefault(key, value)
+            return
+    print("--- .env file not found in candidate paths. Relying on system environment variables. ---")
 
 class LLMService:
     def __init__(self, provider: LLMProvider):
@@ -48,7 +41,6 @@ class LLMService:
         self.character = CHARACTER_CONFIG
         self.provider = provider
         
-        # Load .env (non-intrusive; ignores if missing)
         _load_dotenv_if_present()
 
         api_key = None
@@ -58,11 +50,16 @@ class LLMService:
             api_key = os.environ.get("GROQ_API_KEY") or SERVICE_CONFIG.get('groq_api_key')
             base_url = "https://api.groq.com/openai/v1"
         elif self.provider == LLMProvider.OLLAMA:
+            ollama_host = os.environ.get("OLLAMA_HOST_URL", "http://localhost:11434")
             api_key = "ollama"
-            base_url = "http://localhost:11434/v1"
+            base_url = f"{ollama_host}/v1"
+            print(f"--- Ollama client configured to use base URL: {base_url} ---")
         elif self.provider == LLMProvider.OPENAI:
             api_key = os.environ.get("OPENAI_API_KEY") or SERVICE_CONFIG.get('openai_api_key')
         
+        if not api_key:
+            print(f"!!! WARNING: API key for {self.provider.value.upper()} is missing. Initialization will likely fail.")
+
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url)
         
         self.history_path = Path(self.character['history_file'])
@@ -80,13 +77,10 @@ class LLMService:
         with open(self.history_path, "w", encoding='utf-8') as f:
             json.dump(self.history, f, indent=2, ensure_ascii=False)
 
-    async def generate_response(self, user_input: str, memories: list[str]) -> tuple[str, str]:
+    async def generate_response(self, user_input: str, memories: list[str]) -> tuple[str, str | None, str]:
         print("🧠 Thinking...")
         
-        # Prepare memory context (no "Senpai" here)
         memory_context = "You remember these facts about the user:\n- " + "\n- ".join(memories) if memories else ""
-        
-        # Add user input to history (no "Senpai says:" here)
         full_user_input = f"{memory_context}\n\nUser: {user_input}".strip()
         self.history.append({"role": "user", "content": full_user_input})
 
@@ -102,15 +96,21 @@ class LLMService:
         self._save_history()
 
         emotion = "neutral"
+        action = None
         text = assistant_message
         
-        match = re.match(r"\[(\w+)\]\s*(.*)", assistant_message, re.DOTALL)
-        if match:
-            emotion = match.group(1).lower()
-            text = match.group(2).strip()
+        emotion_match = re.match(r"\[(\w+)\]", text)
+        if emotion_match:
+            emotion = emotion_match.group(1).lower()
+            text = text[emotion_match.end():].lstrip()
+
+        action_match = re.match(r"\[action:(\w+)\]", text)
+        if action_match:
+            action = action_match.group(1).lower()
+            text = text[action_match.end():].lstrip()
         
-        print(f"LLM Response (Emotion: {emotion}): '{text}'")
-        return emotion, text
+        print(f"LLM Response (Emotion: {emotion}, Action: {action}): '{text.strip()}'")
+        return emotion, action, text.strip()
 
     async def extract_memories(self) -> list[str]:
         print("📝 Checking for new memories...")
@@ -126,8 +126,6 @@ class LLMService:
         
         content = response.choices[0].message.content
         try:
-            # The LLM should return a string representation of a list
-            # Find the list within the response text
             list_match = re.search(r'\[.*\]', content, re.DOTALL)
             if list_match:
                 extracted_facts = ast.literal_eval(list_match.group(0))

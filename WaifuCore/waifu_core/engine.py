@@ -1,5 +1,5 @@
 # waifu_core/engine.py
-import re # <-- ADD THIS IMPORT
+import re
 from waifu_core.models import LLMProvider, CharacterState
 from waifu_core.services.asr_service import ASRService
 from waifu_core.services.llm_service import LLMService
@@ -30,14 +30,15 @@ class ConversationEngine:
         self.emotion_map = CHARACTER_CONFIG['emotion_map']
 
     def _clean_text_for_tts(self, text: str) -> str:
-        """Removes bracketed actions and asterisks from text for clean TTS input."""
-        cleaned_text = re.sub(r'[\*\(\[]\w+[\*\)\]]', '', text)
+        """Removes bracketed/asterisked actions and expressions for clean TTS input."""
+        # This regex now correctly handles multi-word actions.
+        cleaned_text = re.sub(r'[\*\(\[].*?[\*\)\]]', '', text)
         return " ".join(cleaned_text.split())
 
     async def run_turn(self, audio_filepath: str | None = None, text_input: str | None = None):
-        # ... (listening and thinking parts are unchanged)
+        # The generator now yields 5 values: state, text, audio, animation, action
         self.state = CharacterState.LISTENING
-        yield self.state, None, None, None
+        yield self.state, None, None, None, None
         
         if audio_filepath:
             user_input = self.asr_service.transcribe_audio(audio_filepath)
@@ -45,40 +46,36 @@ class ConversationEngine:
             user_input = text_input
         else:
             self.state = CharacterState.IDLE
-            yield self.state, "No input received, ji.", None, "neutral"
+            yield self.state, "No input received, ji.", None, "neutral", None
             return
             
         if not user_input or len(user_input) < 2:
             self.state = CharacterState.IDLE
-            yield self.state, "I didn't quite catch that, ji.", None, "playful"
+            yield self.state, "I didn't quite catch that, ji.", None, "playful", None
             return
 
         self.state = CharacterState.THINKING
-        yield self.state, None, None, None
+        yield self.state, None, None, "thinking", None
         
         relevant_memories = self.memory_service.retrieve_relevant_memories(user_input)
-        emotion, ananya_text_raw = await self.llm_service.generate_response(user_input, relevant_memories)
+        # LLM service now returns emotion, action, and text
+        emotion, action, ananya_text_raw = await self.llm_service.generate_response(user_input, relevant_memories)
 
-        # --- MODIFICATION HERE ---
-        # 1. Clean the text before sending it to the TTS
         ananya_text_for_tts = self._clean_text_for_tts(ananya_text_raw)
-
-        # 2. The chatbot UI should still show the full, expressive text with actions
         ananya_text_for_ui = ananya_text_raw
 
         self.state = CharacterState.SPEAKING
         animation = self.emotion_map.get(emotion, self.emotion_map.get("default", {}))['animation']
-        # Show the full expressive text in the UI
-        yield self.state, ananya_text_for_ui, None, animation
         
-        # Synthesize audio using only the cleaned text
+        # Yield the action along with other state
+        yield self.state, ananya_text_for_ui, None, animation, action
+        
         audio_output_bytes = await self.tts_service.synthesize(ananya_text_for_tts, emotion)
         
-        yield self.state, ananya_text_for_ui, audio_output_bytes, animation
+        yield self.state, ananya_text_for_ui, audio_output_bytes, animation, action
         
-        # ... (memory extraction and idle state parts are unchanged)
         new_memories = await self.llm_service.extract_memories()
         self.memory_service.add_memories(new_memories)
 
         self.state = CharacterState.IDLE
-        yield self.state, ananya_text_for_ui, audio_output_bytes, animation
+        yield self.state, ananya_text_for_ui, audio_output_bytes, animation, action
