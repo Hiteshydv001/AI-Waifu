@@ -32,8 +32,8 @@ const techStack = [
   { component: "UI Components", technology: "Shadcn-UI, Tailwind CSS" },
   { component: "3D Avatar", technology: "Three.js, @pixiv/three-vrm" },
   { component: "ASR (Speech-to-Text)", technology: "faster-whisper" },
-  { component: "TTS (Text-to-Speech)", technology: "Coqui TTS, Kokoro TTS" },
-  { component: "LLM (Language Model)", technology: "Groq, Ollama, OpenAI" },
+  { component: "TTS (Text-to-Speech)", technology: "Coqui TTS, Kokoro TTS, ElevenLabs" },
+  { component: "LLM (Language Model)", technology: "Groq, Ollama, Gemini AI" },
   { component: "Memory", technology: "ChromaDB" },
   { component: "Real-time Comms", technology: "WebSockets" }
 ];
@@ -64,7 +64,12 @@ const setupSteps = [
   {
     title: "Configure API Keys",
     description: "Create .env file with your API keys",
-    code: "# WaifuCore/.env\nOPENAI_API_KEY=sk-YOUR_KEY_HERE\nGROQ_API_KEY=gsk_YOUR_KEY_HERE"
+    code: "# WaifuCore/.env\nGEMINI_API_KEY=your_gemini_key_here\nGROQ_API_KEY=gsk_YOUR_KEY_HERE\nELEVENLABS_API_KEY=your_elevenlabs_key_here"
+  },
+  {
+    title: "Choose TTS Provider",
+    description: "Configure your preferred text-to-speech service",
+    code: "# In config/services.yaml\ntts:\n  provider: \"elevenlabs\"  # Options: kokoro, elevenlabs, coqui\n  elevenlabs:\n    voice_id: \"Rachel\"  # Or any voice from your account"
   }
 ];
 
@@ -114,13 +119,13 @@ const Docs = () => {
   };
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       {/* Navigation */}
       <nav className="container max-w-6xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between py-4 px-6 mx-4 my-4 backdrop-blur-md bg-white/80 border border-gray-200 rounded-2xl shadow-lg">
           <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg" style={{ backgroundImage: "var(--gradient-primary)" }} />
-            <span className="font-semibold">Girlfriendie</span>
+            <img src="/ananya-character.png" alt="Ananya" className="h-8 w-8 rounded-lg object-cover" />
+            <span className="font-semibold text-gray-900">Girlfriendie</span>
           </Link>
           <div className="hidden sm:flex items-center gap-3">
             <Button variant="ghost" asChild>
@@ -141,23 +146,25 @@ const Docs = () => {
 
       {/* Hero Section */}
       <section className="container max-w-6xl mx-auto px-4 pb-8">
-        <div ref={heroRef} className="hero-grid rounded-2xl border p-8 sm:p-14 surface-card">
+        <div ref={heroRef} className="hero-grid rounded-3xl backdrop-blur-lg bg-white/80 border border-gray-200 p-8 sm:p-14 shadow-2xl">
           <div className="mx-auto max-w-4xl text-center">
             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-4">
-              <span className="text-gradient">Developer</span>
-              <span> Documentation</span>
+              <span className="text-gradient text-gray-900">Developer</span>
+              <span className="text-gray-900"> Documentation</span>
             </h1>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-lg text-gray-600 mb-8">
               Complete guide to set up, run, and customize Project Ananya. From installation to advanced customization, everything you need to get started.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Button variant="hero" className="w-full sm:w-auto" asChild>
-                <Link to="#setup">
+                <Link to="/demo">
                   <BookOpen className="mr-1" /> Quick Start
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full sm:w-auto">
-                <ExternalLink className="mr-1" /> GitHub Repo
+              <Button variant="outline" className="w-full sm:w-auto" asChild>
+                <a href="https://github.com/Hiteshydv001/AI-Waifu" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="mr-1" /> GitHub Repo
+                </a>
               </Button>
             </div>
           </div>
@@ -167,18 +174,18 @@ const Docs = () => {
       {/* Project Overview */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 border border-blue-200 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <Zap className="h-4 w-4" />
             📋 Project Overview
           </div>
-          <h2 className="text-3xl font-extrabold tracking-tight mb-4">Architecture & Components</h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+          <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">Architecture & Components</h2>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             Project Ananya is a client-server application with a Python backend and React frontend, designed for seamless AI companion interactions.
           </p>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card className="surface-card">
+          <Card className="backdrop-blur-lg bg-white/80 border border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Database className="h-5 w-5" />
@@ -186,7 +193,7 @@ const Docs = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-gray-600 mb-4">
                 A headless Python API built with FastAPI. Handles all AI processing including speech-to-text, language model inference, text-to-speech synthesis, and long-term memory management.
               </p>
               <ul className="space-y-2">
@@ -206,7 +213,7 @@ const Docs = () => {
             </CardContent>
           </Card>
 
-          <Card className="surface-card">
+          <Card className="backdrop-blur-lg bg-white/80 border border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="h-5 w-5" />
@@ -214,7 +221,7 @@ const Docs = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-gray-600 mb-4">
                 A modern web interface built with Vite, React, and TypeScript. Captures user input, communicates via WebSockets, and renders the interactive 3D VRM avatar.
               </p>
               <ul className="space-y-2">
@@ -239,18 +246,18 @@ const Docs = () => {
       {/* Tech Stack */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-extrabold tracking-tight mb-4">Technology Stack</h2>
-          <p className="text-lg text-muted-foreground">Built with modern, industry-standard technologies</p>
+          <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">Technology Stack</h2>
+          <p className="text-lg text-gray-600">Built with modern, industry-standard technologies</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {techStack.map((item, index) => (
-            <Card key={index} className="surface-card">
+            <Card key={index} className="backdrop-blur-lg bg-white/80 border border-gray-200">
               <CardContent className="p-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-semibold text-sm">{item.component}</h3>
-                    <p className="text-muted-foreground text-xs mt-1">{item.technology}</p>
+                    <h3 className="font-semibold text-sm text-gray-900">{item.component}</h3>
+                    <p className="text-gray-600 text-xs mt-1">{item.technology}</p>
                   </div>
                   <Badge variant="secondary" className="text-xs">{item.component.split(' ')[0]}</Badge>
                 </div>
@@ -263,21 +270,21 @@ const Docs = () => {
       {/* Prerequisites */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-extrabold tracking-tight mb-4">Prerequisites</h2>
-          <p className="text-lg text-muted-foreground">What you need before getting started</p>
+          <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">Prerequisites</h2>
+          <p className="text-lg text-gray-600">What you need before getting started</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {prerequisites.map((item, index) => (
-            <Card key={index} className="surface-card">
+            <Card key={index} className="backdrop-blur-lg bg-white/80 border border-gray-200">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="p-3 bg-primary/10 rounded-lg text-primary">
                     {item.icon}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-1">{item.name}</h3>
-                    <p className="text-muted-foreground text-sm">{item.version}</p>
+                    <h3 className="font-semibold text-lg mb-1 text-gray-900">{item.name}</h3>
+                    <p className="text-gray-600 text-sm">{item.version}</p>
                   </div>
                 </div>
               </CardContent>
@@ -287,15 +294,15 @@ const Docs = () => {
       </section>
 
       {/* Setup Guide */}
-      <section id="setup" className="container max-w-6xl mx-auto px-4 py-16">
+      <section id="quick-start" className="container max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-extrabold tracking-tight mb-4">Quick Setup Guide</h2>
-          <p className="text-lg text-muted-foreground">Get up and running in minutes</p>
+          <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">Quick Start Guide</h2>
+          <p className="text-lg text-gray-600">Get up and running in minutes</p>
         </div>
         
         <div className="space-y-8">
           {setupSteps.map((step, index) => (
-            <Card key={index} className="surface-card">
+            <Card key={index} className="backdrop-blur-lg bg-white/80 border border-gray-200">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
@@ -303,7 +310,7 @@ const Docs = () => {
                   </div>
                   <div>
                     <CardTitle className="text-lg">{step.title}</CardTitle>
-                    <p className="text-muted-foreground text-sm">{step.description}</p>
+                    <p className="text-gray-600 text-sm">{step.description}</p>
                   </div>
                 </div>
               </CardHeader>
@@ -334,26 +341,26 @@ const Docs = () => {
       {/* Project Structure */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-extrabold tracking-tight mb-4">Project Structure</h2>
-          <p className="text-lg text-muted-foreground">Understanding the codebase organization</p>
+          <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">Project Structure</h2>
+          <p className="text-lg text-gray-600">Understanding the codebase organization</p>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {projectStructure.map((section, index) => (
-            <Card key={index} className="surface-card">
+            <Card key={index} className="backdrop-blur-lg bg-white/80 border border-gray-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Folder className="h-5 w-5" />
                   {section.path}
                 </CardTitle>
-                <p className="text-muted-foreground text-sm">{section.description}</p>
+                <p className="text-gray-600 text-sm">{section.description}</p>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
                   {section.items.map((item, itemIndex) => (
                     <li key={itemIndex} className="flex items-start gap-2 text-sm">
-                      <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                      <span className="text-muted-foreground">{item}</span>
+                      <FileText className="h-4 w-4 text-gray-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-600">{item}</span>
                     </li>
                   ))}
                 </ul>
@@ -366,12 +373,12 @@ const Docs = () => {
       {/* Running the Application */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-extrabold tracking-tight mb-4">Running the Application</h2>
-          <p className="text-lg text-muted-foreground">Start both backend and frontend servers</p>
+          <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">Running the Application</h2>
+          <p className="text-lg text-gray-600">Start both backend and frontend servers</p>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card className="surface-card">
+          <Card className="backdrop-blur-lg bg-white/80 border border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Terminal className="h-5 w-5" />
@@ -380,7 +387,7 @@ const Docs = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <p className="text-muted-foreground text-sm">Navigate to WaifuCore and start the API server:</p>
+                <p className="text-gray-600 text-sm">Navigate to WaifuCore and start the API server:</p>
                 <div className="relative">
                   <pre className="bg-muted/50 rounded-lg p-4 text-sm">
                     <code>cd WaifuCore{'\n'}python -m main_api</code>
@@ -398,12 +405,12 @@ const Docs = () => {
                     )}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">Server will run on http://localhost:8000</p>
+                <p className="text-xs text-gray-600">Server will run on http://localhost:8000</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="surface-card">
+          <Card className="backdrop-blur-lg bg-white/80 border border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Terminal className="h-5 w-5" />
@@ -412,7 +419,7 @@ const Docs = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <p className="text-muted-foreground text-sm">Navigate to Frontend and start the dev server:</p>
+                <p className="text-gray-600 text-sm">Navigate to Frontend and start the dev server:</p>
                 <div className="relative">
                   <pre className="bg-muted/50 rounded-lg p-4 text-sm">
                     <code>cd Frontend{'\n'}npm run dev</code>
@@ -430,7 +437,7 @@ const Docs = () => {
                     )}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">Usually runs on http://localhost:5173</p>
+                <p className="text-xs text-gray-600">Usually runs on http://localhost:5173</p>
               </div>
             </CardContent>
           </Card>
@@ -440,41 +447,41 @@ const Docs = () => {
       {/* Customization Guide */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-extrabold tracking-tight mb-4">Customization Guide</h2>
-          <p className="text-lg text-muted-foreground">Make Ananya truly yours</p>
+          <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">Customization Guide</h2>
+          <p className="text-lg text-gray-600">Make Ananya truly yours</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="surface-card">
+          <Card className="backdrop-blur-lg bg-white/80 border border-gray-200">
             <CardHeader>
               <CardTitle className="text-lg">Change Persona</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-sm mb-3">
+              <p className="text-gray-600 text-sm mb-3">
                 Edit <code className="bg-muted px-1 rounded">character.yaml</code> to modify personality, speech patterns, and behavior.
               </p>
               <Badge variant="secondary" className="text-xs">Easiest</Badge>
             </CardContent>
           </Card>
 
-          <Card className="surface-card">
+          <Card className="backdrop-blur-lg bg-white/80 border border-gray-200">
             <CardHeader>
               <CardTitle className="text-lg">Change Voice</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-sm mb-3">
-                Replace the reference voice file and update the path in <code className="bg-muted px-1 rounded">services.yaml</code>.
+              <p className="text-gray-600 text-sm mb-3">
+                Choose between Kokoro (fast, local), ElevenLabs (premium, cloud), or Coqui (custom voice cloning). Update provider in <code className="bg-muted px-1 rounded">services.yaml</code>.
               </p>
               <Badge variant="secondary" className="text-xs">Medium</Badge>
             </CardContent>
           </Card>
 
-          <Card className="surface-card">
+          <Card className="backdrop-blur-lg bg-white/80 border border-gray-200">
             <CardHeader>
               <CardTitle className="text-lg">Change Avatar</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-sm mb-3">
+              <p className="text-gray-600 text-sm mb-3">
                 Replace the VRM model file in the public directory and update the component reference.
               </p>
               <Badge variant="secondary" className="text-xs">Advanced</Badge>
@@ -485,12 +492,12 @@ const Docs = () => {
 
       {/* Call to Action */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
-        <Card className="surface-card text-center p-8 sm:p-12">
+        <Card className="backdrop-blur-lg bg-white/80 border border-gray-200 text-center p-8 sm:p-12">
           <div className="mx-auto max-w-2xl">
-            <h2 className="text-3xl font-extrabold tracking-tight mb-4">
+            <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">
               Ready to build your AI companion?
             </h2>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-lg text-gray-600 mb-8">
               Follow the setup guide and start customizing Ananya to create your perfect AI companion experience.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -501,9 +508,11 @@ const Docs = () => {
                   <ArrowRight className="ml-2" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                <ExternalLink className="mr-2" />
-                View on GitHub
+              <Button variant="outline" size="lg" className="w-full sm:w-auto" asChild>
+                <a href="https://github.com/Hiteshydv001/AI-Waifu" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="mr-2" />
+                  View on GitHub
+                </a>
               </Button>
             </div>
           </div>

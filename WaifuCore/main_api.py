@@ -48,7 +48,7 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 @app.websocket("/ws/chat")
-async def websocket_endpoint(websocket: WebSocket, llm: str = 'groq', tts: str = 'coqui'):
+async def websocket_endpoint(websocket: WebSocket, llm: str = 'gemini', tts: str = 'coqui'):
     await manager.connect(websocket, llm_provider=llm, tts_provider=tts)
     try:
         while True:

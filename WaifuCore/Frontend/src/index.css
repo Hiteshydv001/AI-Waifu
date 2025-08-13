@@ -161,4 +161,92 @@
       radial-gradient(800px circle at calc(var(--mx,50%) - 20%) calc(var(--my,50%) + 20%), hsl(var(--brand-2) / 0.10), transparent 50%),
       hsl(var(--background));
   }
+
+  /* Custom animations for enhanced user experience */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 5px hsl(var(--brand) / 0.3); }
+    50% { box-shadow: 0 0 20px hsl(var(--brand) / 0.6), 0 0 30px hsl(var(--brand-2) / 0.4); }
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.1); }
+    50% { transform: scale(1.05); }
+    75% { transform: scale(1.1); }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
+  .animate-heartbeat {
+    animation: heartbeat 1.5s ease-in-out infinite;
+  }
+
+  .shimmer-effect {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer-effect::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(var(--brand) / 0.1), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 2s infinite;
+  }
+
+  /* Gradient text animations */
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .text-gradient-animated {
+    background: linear-gradient(-45deg, hsl(var(--brand)), hsl(var(--brand-2)), hsl(var(--brand)), hsl(var(--brand-2)));
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  /* Card hover effects */
+  .card-hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .card-hover-lift:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--shadow-elevate), 0 0 25px hsl(var(--brand) / 0.15);
+  }
+
+  /* Status indicator animations */
+  @keyframes status-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.1); }
+  }
+
+  .status-pulse {
+    animation: status-pulse 1.5s ease-in-out infinite;
+  }
 }

@@ -1,7 +1,7 @@
 # requirements.txt
 
 # Core AI & ML
-openai
+google-generativeai  # Gemini API
 faster-whisper
 torch
 torchaudio
@@ -10,6 +10,7 @@ chromadb            # Vector database for long-term memory
 
 # Web Framework & Utilities
 httpx             # For async API calls
+aiohttp           # For async HTTP requests
 PyYAML
 certifi
 
@@ -19,14 +20,15 @@ certifi
 soundfile
 pyaudio
 
+# TTS Services
 kokoro>=0.9.2
+elevenlabs        # ElevenLabs TTS API
+TTS               # Coqui TTS
 
 gradio==4.31.5
 fastapi==0.110.0
 uvicorn==0.29.0
 python-multipart==0.0.9
 pydantic==2.6.4
-
-TTS 
 
 transformers==4.36.2

@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from enum import Enum, auto
 
 class LLMProvider(str, Enum):
-    OPENAI = "openai"
+    GEMINI = "gemini"
     GROQ = "groq"
     OLLAMA = "ollama"
 

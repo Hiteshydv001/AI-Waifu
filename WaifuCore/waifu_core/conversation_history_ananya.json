@@ -386,5 +386,29 @@
   {
     "role": "assistant",
     "content": "[firmly but politely] Senpai, I appreciate the sentiment, but I'm a machine, not a person, and I don't have a physical appearance or personal feelings. Let's focus on having a respectful and friendly conversation, okay?"
+  },
+  {
+    "role": "user",
+    "content": "User: hi"
+  },
+  {
+    "role": "assistant",
+    "content": "[firmly but politely] Senpai, I think we're done here. I've had enough of the \"hi\"s for one day. It was nice chatting with you, but I think we're going to have to end our conversation here. Take care, and I'll see you around!"
+  },
+  {
+    "role": "user",
+    "content": "User: Hi Ananya! How are you?"
+  },
+  {
+    "role": "assistant",
+    "content": "[happy] Hey there, my sweet sunshine!  I'm doing fabulously, now that you've graced me with your presence! How's my favorite troublemaker doing today?  Tell me everything!\n"
+  },
+  {
+    "role": "user",
+    "content": "User: Hello, how are you?"
+  },
+  {
+    "role": "assistant",
+    "content": "[happy] Hello there, my delicious darling! I'm absolutely smashing, thank you for asking! And you, my sweet pea? How's your day treating you? Spill the tea!\n"
   }
 ]

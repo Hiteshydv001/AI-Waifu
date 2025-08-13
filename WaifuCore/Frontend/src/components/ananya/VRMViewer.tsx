@@ -1,39 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { VRM, VRMExpressionPresetName, VRMLoaderPlugin, VRMHumanBoneName } from "@pixiv/three-vrm";
-
-const retargetAnimation = (fbxAnimation: THREE.Group, vrm: VRM): THREE.AnimationClip => {
-    const clip = fbxAnimation.animations[0];
-    if (!clip) { return new THREE.AnimationClip("empty", 0, []); }
-    const tracks: THREE.KeyframeTrack[] = [];
-    const vrmSkeleton = vrm.humanoid.humanBones;
-    const mixamoPrefix = 'mixamorig';
-    const boneNameMap: { [key: string]: VRMHumanBoneName } = {
-        Hips: 'hips', Spine: 'spine', Spine1: 'chest', Spine2: 'upperChest', Neck: 'neck', Head: 'head',
-        LeftShoulder: 'leftShoulder', LeftArm: 'leftUpperArm', LeftForeArm: 'leftLowerArm', LeftHand: 'leftHand',
-        RightShoulder: 'rightShoulder', RightArm: 'rightUpperArm', RightForeArm: 'rightLowerArm', RightHand: 'rightHand',
-        LeftUpLeg: 'leftUpperLeg', LeftLeg: 'leftLowerLeg', LeftFoot: 'leftFoot', LeftToeBase: 'leftToes',
-        RightUpLeg: 'rightUpperLeg', RightLeg: 'rightLowerLeg', RightFoot: 'rightFoot', RightToeBase: 'rightToes',
-    };
-    clip.tracks.forEach(track => {
-        const trackNameParts = track.name.split('.');
-        const mixamoBoneName = trackNameParts[0].replace(mixamoPrefix, '');
-        const vrmBoneName = boneNameMap[mixamoBoneName];
-        if (vrmBoneName) {
-            const vrmNode = vrmSkeleton[vrmBoneName]?.node;
-            if (vrmNode) {
-                const newTrackName = `${vrmNode.name}.${trackNameParts[1]}`;
-                const newTrack = track.clone();
-                newTrack.name = newTrackName;
-                tracks.push(newTrack);
-            }
-        }
-    });
-    return new THREE.AnimationClip(clip.name, clip.duration, tracks);
-};
 
 interface VRMViewerProps {
   characterState: "idle" | "thinking" | "speaking";
@@ -81,49 +50,125 @@ const VRMViewer: React.FC<VRMViewerProps> = ({ characterState, emotion, actionAn
 
     const gltfLoader = new GLTFLoader();
     gltfLoader.register((parser) => new VRMLoaderPlugin(parser));
-    const fbxLoader = new FBXLoader();
     
-    Promise.all([
-      gltfLoader.loadAsync("/ananya.vrm"),
-      fbxLoader.loadAsync("/dance.fbx").catch(() => null),
-      fbxLoader.loadAsync("/shy.fbx").catch(() => null),
-    ]).then(([gltf, danceAnim, shyAnim]) => {
+    // Load VRM and create simple, reliable animations
+    gltfLoader.loadAsync("/ananya.vrm").then((gltf) => {
       const vrm = gltf.userData.vrm;
       vrmRef.current = vrm;
       scene.add(vrm.scene);
       const mixer = new THREE.AnimationMixer(vrm.scene);
       mixerRef.current = mixer;
-      if (danceAnim) {
-        const clip = retargetAnimation(danceAnim, vrm);
-        animationActions.current['dance'] = mixer.clipAction(clip);
-        animationActions.current['dance'].setLoop(THREE.LoopRepeat, Infinity);
-      }
-      if (shyAnim) {
-        const clip = retargetAnimation(shyAnim, vrm);
-        animationActions.current['shy'] = mixer.clipAction(clip);
-        animationActions.current['shy'].setLoop(THREE.LoopOnce, 1);
-        animationActions.current['shy'].clampWhenFinished = true;
-      }
+      
+      console.log("VRM loaded successfully");
+      console.log("VRM scene name:", vrm.scene.name);
+      
+      // 1. SPIN ANIMATION - Simple Y rotation
+      const spinTrack = new THREE.NumberKeyframeTrack(
+        vrm.scene.name + '.rotation[y]',
+        [0, 2],
+        [0, Math.PI * 2]
+      );
+      const spinClip = new THREE.AnimationClip('spin', 2, [spinTrack]);
+      const spinAction = mixer.clipAction(spinClip);
+      spinAction.setLoop(THREE.LoopRepeat, Infinity);
+      animationActions.current['spin'] = spinAction;
+      console.log("Spin animation created");
+      
+      // 2. DANCE ANIMATION - Simple up and down bouncing
+      const dancePositionTrack = new THREE.VectorKeyframeTrack(
+        vrm.scene.name + '.position',
+        [0, 0.25, 0.5, 0.75, 1.0],
+        [
+          0, 0, 0,    // start
+          0, 0.15, 0, // bounce up
+          0, 0, 0,    // down
+          0, 0.15, 0, // bounce up
+          0, 0, 0     // down
+        ]
+      );
+      const danceClip = new THREE.AnimationClip('dance', 1, [dancePositionTrack]);
+      const danceAction = mixer.clipAction(danceClip);
+      danceAction.setLoop(THREE.LoopRepeat, Infinity);
+      animationActions.current['dance'] = danceAction;
+      console.log("Dance animation created - simple bouncing");
+      
+      // 3. SHY ANIMATION - Only facial expressions
+      const shyTrack = new THREE.NumberKeyframeTrack(
+        vrm.scene.name + '.userData.shyTrigger',
+        [0, 3],
+        [0, 1]
+      );
+      const shyClip = new THREE.AnimationClip('shy', 3, [shyTrack]);
+      const shyAction = mixer.clipAction(shyClip);
+      shyAction.setLoop(THREE.LoopOnce, 1);
+      shyAction.clampWhenFinished = true;
+      
+      // Override shy action play to trigger facial expressions
+      const originalShyPlay = shyAction.play.bind(shyAction);
+      shyAction.play = function() {
+        if (vrm.expressionManager) {
+          console.log("Triggering shy facial expressions");
+          
+          // Clear current expressions
+          Object.values(VRMExpressionPresetName).forEach(preset => {
+            if (typeof preset === 'string') {
+              vrm.expressionManager?.setValue(preset, 0);
+            }
+          });
+          
+          // Set shy/blushing expressions
+          vrm.expressionManager.setValue(VRMExpressionPresetName.Happy, 0.9);
+          vrm.expressionManager.setValue(VRMExpressionPresetName.Blink, 0.7);
+          
+          // Reset expressions after 2.5 seconds
+          setTimeout(() => {
+            if (vrm.expressionManager) {
+              Object.values(VRMExpressionPresetName).forEach(preset => {
+                if (typeof preset === 'string') {
+                  vrm.expressionManager?.setValue(preset, 0);
+                }
+              });
+              vrm.expressionManager.setValue(VRMExpressionPresetName.Neutral, 1);
+            }
+          }, 2500);
+        }
+        return originalShyPlay();
+      };
+      
+      animationActions.current['shy'] = shyAction;
+      console.log("Shy animation created - facial expressions only");
+      
+      // 4. WAVE ANIMATION - Placeholder
+      const waveTrack = new THREE.NumberKeyframeTrack(
+        vrm.scene.name + '.userData.waveTrigger',
+        [0, 2.5],
+        [0, 1]
+      );
+      const waveClip = new THREE.AnimationClip('wave', 2.5, [waveTrack]);
+      const waveAction = mixer.clipAction(waveClip);
+      waveAction.setLoop(THREE.LoopOnce, 1);
+      waveAction.clampWhenFinished = true;
+      animationActions.current['wave'] = waveAction;
+      console.log("Wave animation created");
+      
+      console.log("All animations created:", Object.keys(animationActions.current));
       setReady(true);
-      animate();
     }).catch(e => {
-        console.error("Asset loading failed:", e);
-        setLoadingError("Failed to load assets. Check console.");
+        console.error("VRM loading failed:", e);
+        setLoadingError("Failed to load VRM avatar. Check console for details.");
     });
 
-    // --- ANTI-BLUR FIX: This logic is now fully restored ---
     const onResize = () => {
         if (!containerRef.current || !canvasRef.current) return;
         const width = containerRef.current.clientWidth;
         const height = containerRef.current.clientHeight;
-
         renderer.setSize(width, height);
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
     };
     const resizeObserver = new ResizeObserver(onResize);
     resizeObserver.observe(container);
-    onResize(); // Set initial size
+    onResize();
 
     const onMouseMove = (event: MouseEvent) => {
         if (!containerRef.current) return;
@@ -145,10 +190,13 @@ const VRMViewer: React.FC<VRMViewerProps> = ({ characterState, emotion, actionAn
       if (vrm) {
         const currentState = stateRef.current;
         const manager = vrm.expressionManager;
+        
+        // Lip sync
         const lipTarget = currentState.characterState === 'speaking' ? 1.0 : 0.0;
         lipValue = THREE.MathUtils.lerp(lipValue, lipTarget, 1 - Math.exp(-25 * delta));
         manager?.setValue(VRMExpressionPresetName.Aa, lipValue);
 
+        // Emotions
         const emotionMap = {
             happy: { [VRMExpressionPresetName.Happy]: 1.0, [VRMExpressionPresetName.Relaxed]: 0.7 },
             sad: { [VRMExpressionPresetName.Sad]: 1.0 },
@@ -165,12 +213,23 @@ const VRMViewer: React.FC<VRMViewerProps> = ({ characterState, emotion, actionAn
             manager?.setValue(preset, newWeight);
         });
         
-        const hips = vrm.humanoid.getBoneNode(VRMHumanBoneName.Hips);
-        if (hips) hips.position.y = 0.005 * Math.sin(clock.getElapsedTime() * 0.7);
-        if (currentState.actionAnimation === 'laugh') {
-            if (hips) hips.position.y += 0.02 * Math.sin(clock.getElapsedTime() * 20);
+        // Breathing animation (only when idle)
+        if (!currentState.actionAnimation || currentState.actionAnimation === 'idle') {
+          const hips = vrm.humanoid.getBoneNode(VRMHumanBoneName.Hips);
+          if (hips) {
+            hips.position.y = 0.005 * Math.sin(clock.getElapsedTime() * 0.7);
+          }
         }
         
+        // Laugh animation
+        if (currentState.actionAnimation === 'laugh') {
+          const hips = vrm.humanoid.getBoneNode(VRMHumanBoneName.Hips);
+          if (hips) {
+            hips.position.y += 0.02 * Math.sin(clock.getElapsedTime() * 20);
+          }
+        }
+        
+        // Blinking
         blinkCountdown -= delta;
         if (blinkCountdown < 0) {
             manager?.setValue(VRMExpressionPresetName.Blink, 1.0);
@@ -189,6 +248,8 @@ const VRMViewer: React.FC<VRMViewerProps> = ({ characterState, emotion, actionAn
       renderer.render(scene, camera);
     };
     
+    animate();
+    
     return () => {
       cancelAnimationFrame(animationFrameId);
       resizeObserver.disconnect();
@@ -200,18 +261,68 @@ const VRMViewer: React.FC<VRMViewerProps> = ({ characterState, emotion, actionAn
 
   useEffect(() => {
     const mixer = mixerRef.current;
-    if (!mixer || !Object.keys(animationActions.current).length) return;
-    Object.values(animationActions.current).forEach(action => action.fadeOut(0.5));
+    if (!mixer || !Object.keys(animationActions.current).length) {
+      console.log("Animation effect - mixer or actions not ready");
+      return;
+    }
+    
+    console.log("=== ANIMATION REQUESTED ===");
+    console.log("Requested animation:", actionAnimation);
+    console.log("Available actions:", Object.keys(animationActions.current));
+    
+    // Stop all current animations
+    Object.values(animationActions.current).forEach(action => {
+      if (action.isRunning()) {
+        console.log("Stopping animation:", action.getClip().name);
+        action.stop();
+      }
+    });
+    
+    // Start requested animation
     if (actionAnimation && animationActions.current[actionAnimation]) {
       const action = animationActions.current[actionAnimation];
-      action.reset().fadeIn(0.5).play();
+      console.log("Starting animation:", actionAnimation);
+      console.log("Animation details:", {
+        name: action.getClip().name,
+        duration: action.getClip().duration,
+        tracks: action.getClip().tracks.length
+      });
+      
+      action.reset();
+      action.play();
+      
+      console.log("Animation started successfully. IsRunning:", action.isRunning());
+    } else if (actionAnimation) {
+      console.warn("Animation not found:", actionAnimation);
+    } else {
+      console.log("No animation requested");
     }
   }, [actionAnimation]);
 
   return (
-    <div ref={containerRef} className={`relative w-full h-[560px] rounded-xl border bg-card/40 ${className ?? ""}`}>
+    <div ref={containerRef} className={`relative w-full h-[500px] md:h-[600px] lg:h-[650px] rounded-xl border bg-card/40 shadow-lg ${className ?? ""}`}>
       <canvas ref={canvasRef} className="size-full rounded-xl cursor-grab active:cursor-grabbing" />
-      {!ready && (<div className="absolute inset-0 grid place-items-center text-muted-foreground text-sm">{loadingError || "Loading Ananya's avatar..."}</div>)}
+      
+      {/* 360° View Label */}
+      <div className="absolute top-4 left-4 bg-gradient-to-r from-pink-500/90 to-purple-600/90 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm font-medium shadow-lg border border-white/20">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+          <span>360° Interactive View</span>
+        </div>
+      </div>
+      
+      {/* Instructions Overlay */}
+      <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-xs opacity-70 hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-2">
+          <span>🖱️ Drag to rotate • 🔍 Scroll to zoom</span>
+        </div>
+      </div>
+      
+      {!ready && (
+        <div className="absolute inset-0 grid place-items-center text-muted-foreground text-sm">
+          {loadingError || "Loading Ananya's avatar..."}
+        </div>
+      )}
     </div>
   );
 };

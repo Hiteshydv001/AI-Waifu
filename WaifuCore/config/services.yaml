@@ -1,11 +1,11 @@
-openai_api_key: "sk-YOUR_OPENAI_KEY"
+gemini_api_key: "YOUR_GEMINI_API_KEY"
 groq_api_key: 
 
 # --- Service Configurations ---
 llm:
   # Models for each provider. The code will pick the right one.
   models:
-    openai: "gpt-4o-mini"
+    gemini: "gemini-1.5-flash"  # Free tier model with good performance
     groq: "llama3-8b-8192"
     ollama: "llama3"
   temperature: 0.8
@@ -21,6 +21,8 @@ memory:
   retrieval_results: 3 # How many memories to fetch for context
 
 tts:
+  provider: "kokoro"  # Options: "kokoro", "elevenlabs", "coqui"
+  
   # Coqui TTS Server (for high-quality voice cloning)
   coqui:
     api_url: "http://localhost:5002/api/tts"
@@ -33,3 +35,15 @@ tts:
     model_dir: "models/kokoro"
     voice: "af_heart" # A built-in high-quality female voice
     device: "cuda"
+
+  # ElevenLabs TTS (for premium cloud-based voice synthesis)
+  elevenlabs:
+    # API key can be set via environment variable ELEVENLABS_API_KEY or here
+    api_key: "sk_48b6126d58cd4186d3cbcc4c467504e4638b38eefb0fca24"  # Leave empty to use environment variable
+    voice_id: "Rachel"  # Voice ID or name (e.g., "Rachel", "Domi", "Bella", etc.)
+    model_id: "eleven_monolingual_v1"  # or "eleven_multilingual_v1", "eleven_turbo_v2"
+    voice_settings:
+      stability: 0.75        # 0.0 to 1.0 - Lower is more variable/expressive
+      similarity_boost: 0.75 # 0.0 to 1.0 - Higher is more similar to original voice
+      style: 0.0            # 0.0 to 1.0 - Adds more style/emotion
+      use_speaker_boost: true # Enhances similarity to original speaker

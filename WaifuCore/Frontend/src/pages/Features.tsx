@@ -179,20 +179,24 @@ const Features = () => {
   }, []);
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-900">
       {/* Navigation */}
       <nav className="container max-w-6xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between py-4 px-6 mx-4 my-4 backdrop-blur-md bg-white/80 border border-gray-200 rounded-2xl shadow-lg">
           <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg" style={{ backgroundImage: "var(--gradient-primary)" }} />
-            <span className="font-semibold">Girlfriendie</span>
+            <img src="/ananya-character.png" alt="Ananya" className="h-8 w-8 rounded-lg object-cover" />
+            <span className="font-semibold text-gray-900">Girlfriendie</span>
           </Link>
           <div className="hidden sm:flex items-center gap-3">
             <Button variant="ghost" asChild>
               <Link to="/features">Features</Link>
             </Button>
-            <Button variant="ghost">Demo</Button>
-            <Button variant="outline">Docs</Button>
+            <Button variant="ghost" asChild>
+              <Link to="/demo">Demo</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/docs">Docs</Link>
+            </Button>
             <Button variant="hero" asChild>
               <Link to="/">Get Started</Link>
             </Button>
@@ -202,13 +206,13 @@ const Features = () => {
 
       {/* Hero Section */}
       <section className="container max-w-6xl mx-auto px-4 pb-8">
-        <div ref={heroRef} className="hero-grid rounded-2xl border p-8 sm:p-14 surface-card">
+        <div ref={heroRef} className="hero-grid rounded-3xl backdrop-blur-lg bg-white/90 border border-gray-200 p-8 sm:p-14 shadow-2xl">
           <div className="mx-auto max-w-4xl text-center">
             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-4">
-              <span className="text-gradient">Project Ananya</span>
-              <span> Core Features</span>
+              <span className="text-gradient text-gray-900">Project Ananya</span>
+              <span className="text-gray-900"> Core Features</span>
             </h1>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-lg text-gray-600 mb-8">
               An advanced framework for creating lifelike, interactive AI companions. Combining cutting-edge AI services with a highly expressive 3D avatar to deliver a dynamic and engaging user experience.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -228,29 +232,29 @@ const Features = () => {
       {/* Interactive 3D Avatar Section */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 backdrop-blur-lg bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 px-4 py-2 rounded-full text-sm font-medium mb-4 border border-gray-200">
             <Zap className="h-4 w-4" />
             🤖 The Interactive 3D Avatar
           </div>
-          <h2 className="text-3xl font-extrabold tracking-tight mb-4">Visual Heart of the Project</h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+          <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">Visual Heart of the Project</h2>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             Ananya is more than just a static model. She is a dynamic, expressive character who reacts in real-time to the conversation, creating an immersive and believable interaction experience.
           </p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {avatarFeatures.map((feature, index) => (
-            <Card key={index} className="surface-card hover:shadow-lg transition-all duration-300 group">
+            <Card key={index} className="backdrop-blur-lg bg-white/80 border border-gray-200 shadow-xl rounded-2xl hover:shadow-2xl transition-all duration-300 group">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-primary/10 rounded-lg text-primary group-hover:bg-primary/20 transition-colors">
+                  <div className="p-3 bg-pink-100 rounded-lg text-pink-600 group-hover:bg-pink-200 transition-colors backdrop-blur-sm border border-pink-200">
                     {feature.icon}
                   </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
+                  <CardTitle className="text-lg text-gray-900">{feature.title}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
+                <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
               </CardContent>
             </Card>
           ))}
@@ -260,34 +264,34 @@ const Features = () => {
       {/* AI Core Engine Section */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 backdrop-blur-lg bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4 border border-gray-200">
             <BrainCircuit className="h-4 w-4" />
             🧠 The AI Core Engine
           </div>
-          <h2 className="text-3xl font-extrabold tracking-tight mb-4">Powerful Backend Architecture</h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+          <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">Powerful Backend Architecture</h2>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             A headless API built with Python and FastAPI, orchestrating multiple AI services via real-time WebSocket connection for seamless, intelligent interactions.
           </p>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {aiCoreFeatures.map((feature, index) => (
-            <Card key={index} className="surface-card hover:shadow-lg transition-all duration-300 group">
+            <Card key={index} className="backdrop-blur-lg bg-white/80 border border-gray-200 shadow-xl rounded-2xl hover:shadow-2xl transition-all duration-300 group">
               <CardHeader className="pb-4">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-3 bg-primary/10 rounded-lg text-primary group-hover:bg-primary/20 transition-colors">
+                  <div className="p-3 bg-blue-100 rounded-lg text-blue-600 group-hover:bg-blue-200 transition-colors backdrop-blur-sm border border-blue-200">
                     {feature.icon}
                   </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  <CardTitle className="text-xl text-gray-900">{feature.title}</CardTitle>
                 </div>
-                <p className="text-muted-foreground">{feature.description}</p>
+                <p className="text-gray-600">{feature.description}</p>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
                   {feature.details.map((detail, detailIndex) => (
                     <li key={detailIndex} className="flex items-start gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-muted-foreground">{detail}</span>
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-600">{detail}</span>
                     </li>
                   ))}
                 </ul>
@@ -312,15 +316,15 @@ const Features = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {uiFeatures.map((feature, index) => (
-            <Card key={index} className="surface-card hover:shadow-lg transition-all duration-300 group border-l-4 border-l-primary/20">
+            <Card key={index} className="backdrop-blur-lg bg-white/80 border border-gray-200 hover:shadow-lg transition-all duration-300 group border-l-4 border-l-blue-300">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-primary/10 rounded-lg text-primary group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                  <div className="p-3 bg-blue-100 rounded-lg text-blue-600 group-hover:bg-blue-200 transition-colors flex-shrink-0">
                     {feature.icon}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
+                    <h3 className="font-semibold text-lg mb-2 text-gray-900">{feature.title}</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
                   </div>
                 </div>
               </CardContent>
@@ -344,15 +348,15 @@ const Features = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {customizationFeatures.map((feature, index) => (
-            <Card key={index} className="surface-card hover:shadow-lg transition-all duration-300 group">
+            <Card key={index} className="backdrop-blur-lg bg-white/80 border border-gray-200 hover:shadow-lg transition-all duration-300 group">
               <CardHeader className="pb-4">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-3 bg-primary/10 rounded-lg text-primary group-hover:bg-primary/20 transition-colors">
+                  <div className="p-3 bg-green-100 rounded-lg text-green-600 group-hover:bg-green-200 transition-colors">
                     {feature.icon}
                   </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
+                  <CardTitle className="text-lg text-gray-900">{feature.title}</CardTitle>
                 </div>
-                <p className="text-muted-foreground text-sm">{feature.description}</p>
+                <p className="text-gray-600 text-sm">{feature.description}</p>
               </CardHeader>
               {feature.details && (
                 <CardContent>
@@ -373,12 +377,12 @@ const Features = () => {
 
       {/* Call to Action */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
-        <Card className="surface-card text-center p-8 sm:p-12">
+        <Card className="backdrop-blur-lg bg-white/90 border border-gray-200 text-center p-8 sm:p-12">
           <div className="mx-auto max-w-2xl">
-            <h2 className="text-3xl font-extrabold tracking-tight mb-4">
+            <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">
               Ready to meet Ananya?
             </h2>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-lg text-gray-600 mb-8">
               Experience the future of AI companionship with advanced 3D interaction, natural conversation, and persistent memory.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

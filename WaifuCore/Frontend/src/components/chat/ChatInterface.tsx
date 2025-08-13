@@ -3,24 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAudioRecorder } from "@/hooks/use-audio-recorder";
-import {
-  Mic,
-  MicOff,
-  Send,
-  LoaderCircle,
-  Sparkles,
-  Settings,
-  ChevronDown,
-  User,
-  Bot,
-  Volume2,
-  Trash2,
-  MoreVertical
-} from "lucide-react";
+import { Mic, MicOff, Send, LoaderCircle, Sparkles, Heart, Settings, Volume2, Users, MoreVertical, Copy, Download, RefreshCw, Trash2 } from "lucide-react";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 export type CharacterStatus = { state: "idle" | "thinking" | "speaking"; animation: string; };
@@ -53,7 +38,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onStatusChange, onPlayAni
   const [characterState, setCharacterState] = useState<CharacterStatus["state"]>("idle");
   const [mics, setMics] = useState<MediaDeviceInfo[]>([]);
   const [selectedMic, setSelectedMic] = useState<string>(() => localStorage.getItem("pref_mic") || "default");
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   
   const { isRecording, start, stop, audioBlob, setAudioBlob, audioURL, setAudioURL } = useAudioRecorder();
@@ -128,6 +113,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onStatusChange, onPlayAni
 
   useEffect(() => { localStorage.setItem("pref_llm", llm); localStorage.setItem("pref_tts", tts); }, [llm, tts]);
   useEffect(() => { listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" }); }, [messages]);
+  useEffect(() => { 
+    if (characterState === 'idle') {
+      setIsTyping(false);
+    }
+  }, [characterState]);
 
   const canSend = useMemo(() => (text.trim().length > 0 || !!audioBlob) && characterState === 'idle', [text, audioBlob, characterState]);
 
@@ -135,192 +125,315 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onStatusChange, onPlayAni
     if (!canSend || !ws.current || ws.current.readyState !== WebSocket.OPEN) return;
     onPlayAnimation?.(null);
     let userMessageContent = "";
+    
     if (text.trim().length > 0) {
         userMessageContent = text.trim();
         ws.current.send(JSON.stringify({ type: "text", payload: text.trim() }));
         setText("");
     } else if (audioBlob) {
-        userMessageContent = "🎤 (Voice message)";
+        userMessageContent = "🎤 Voice message";
         const b64 = await blobToBase64(audioBlob);
         ws.current.send(JSON.stringify({ type: "audio", payload: b64 }));
         setAudioBlob(null);
         setAudioURL("");
     }
+    
     setMessages(m => [...m, { role: "user", content: userMessageContent }, { role: "assistant", content: "" }]);
     setCharacterState("thinking");
     onStatusChange?.({ state: "thinking", animation: "thinking" });
+    setIsTyping(true);
   };
 
-  // Message component for better organization
-  const MessageBubble = ({ message, index }: { message: ChatMessage; index: number }) => {
-    const isUser = message.role === "user";
-    const isVoiceMessage = message.content.includes("🎤");
+  const clearConversation = () => {
+    setMessages([]);
+  };
 
-    return (
-      <div
-        className={`flex gap-3 mb-4 animate-in slide-in-from-bottom-2 duration-300 ${
-          isUser ? "flex-row-reverse" : "flex-row"
-        }`}
-        style={{ animationDelay: `${index * 50}ms` }}
-      >
-        <Avatar className={`w-8 h-8 ${isUser ? "ml-2" : "mr-2"} ring-2 ring-border/20`}>
-          <AvatarImage src={isUser ? undefined : "/ananya-avatar.png"} />
-          <AvatarFallback className={`text-xs font-medium ${
-            isUser
-              ? "bg-primary text-primary-foreground"
-              : "bg-gradient-to-br from-violet-500 to-pink-500 text-white"
-          }`}>
-            {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-          </AvatarFallback>
-        </Avatar>
+  const copyMessage = (content: string) => {
+    navigator.clipboard.writeText(content);
+  };
 
-        <div className={`flex flex-col max-w-[75%] ${isUser ? "items-end" : "items-start"}`}>
-          <div className={`relative px-4 py-3 rounded-2xl shadow-sm ${
-            isUser
-              ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-md"
-              : "bg-muted/80 text-foreground rounded-bl-md border border-border/50"
-          }`}>
-            {isVoiceMessage && (
-              <div className="flex items-center gap-2 mb-1">
-                <Volume2 className="w-3 h-3 opacity-70" />
-                <span className="text-xs opacity-70">Voice message</span>
-              </div>
-            )}
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">
-              {message.content}
-            </p>
-            {message.role === 'assistant' && !message.content && (
-              <div className="flex items-center gap-2">
-                <LoaderCircle className="w-4 h-4 animate-spin" />
-                <span className="text-xs opacity-70">Thinking...</span>
-              </div>
-            )}
-          </div>
-          <span className="text-xs text-muted-foreground mt-1 px-1">
-            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </span>
-        </div>
-      </div>
-    );
+  const formatTime = () => {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
-    <Card className="h-full surface-card flex flex-col overflow-hidden">
-      <CardHeader className="pb-3 border-b border-border/50">
+    <Card className="h-full bg-gradient-to-br from-card/80 via-card/60 to-card/40 backdrop-blur-sm border-border/50 shadow-xl flex flex-col overflow-hidden">
+      <CardHeader className="border-b border-border/20 bg-gradient-to-r from-pink-500/5 via-purple-500/5 to-blue-500/5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Avatar className="w-10 h-10 ring-2 ring-violet-500/20">
-              <AvatarImage src="/ananya-avatar.png" />
-              <AvatarFallback className="bg-gradient-to-br from-violet-500 to-pink-500 text-white">
-                <Bot className="w-5 h-5" />
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-pink-400 via-purple-400 to-blue-400 p-0.5">
+                <div className="h-full w-full rounded-full bg-white flex items-center justify-center">
+                  <div className="text-lg">👧</div>
+                </div>
+              </div>
+              <div className="absolute -top-1 -right-1 h-4 w-4 bg-pink-500 rounded-full flex items-center justify-center">
+                <Heart className="h-2 w-2 text-white" />
+              </div>
+            </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-gradient">
+              <CardTitle className="text-lg bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
                 Ananya
               </CardTitle>
               <div className="flex items-center gap-2 mt-1">
-                <Badge
-                  variant={characterState === "idle" ? "secondary" : "default"}
-                  className="text-xs px-2 py-0.5"
-                >
-                  {characterState === "idle" && "Online"}
-                  {characterState === "thinking" && "Thinking..."}
-                  {characterState === "speaking" && "Speaking..."}
-                </Badge>
+                <div className="flex items-center gap-1">
+                  <div className={`h-2 w-2 rounded-full ${characterState === 'idle' ? 'bg-green-500 animate-pulse' : characterState === 'thinking' ? 'bg-yellow-500 animate-ping' : 'bg-blue-500 animate-pulse'}`}></div>
+                  <span className="text-xs text-muted-foreground capitalize">
+                    {characterState === 'thinking' ? 'Thinking...' : characterState === 'speaking' ? 'Speaking...' : 'Online'}
+                  </span>
+                </div>
+                <Badge variant="secondary" className="text-xs">AI Companion</Badge>
               </div>
             </div>
           </div>
-
-          <Collapsible open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Settings className="w-4 h-4" />
-              </Button>
-            </CollapsibleTrigger>
-          </Collapsible>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowSettings(!showSettings)}
+              className="h-8 w-8 p-0"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={clearConversation}
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-
-        <Collapsible open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-          <CollapsibleContent className="space-y-3 pt-3">
-            <div className="grid grid-cols-2 gap-3">
+        
+        {showSettings && (
+          <div className="mt-4 space-y-4 p-5 bg-muted/30 rounded-lg border border-border/20">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                  LLM Provider
-                </label>
+                <label className="mb-2 block text-sm font-medium text-muted-foreground">LLM Provider</label>
                 <Select value={llm} onValueChange={setLlm}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue />
+                  <SelectTrigger className="h-10">
+                    <SelectValue/>
                   </SelectTrigger>
                   <SelectContent>
                     {llmOptions.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.label}
-                      </SelectItem>
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                  TTS Provider
-                </label>
+                <label className="mb-2 block text-sm font-medium text-muted-foreground">TTS Provider</label>
                 <Select value={tts} onValueChange={setTts}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue />
+                  <SelectTrigger className="h-10">
+                    <SelectValue/>
                   </SelectTrigger>
                   <SelectContent>
                     {ttsOptions.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.label}
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-muted-foreground">Microphone Device</label>
+                <Select value={selectedMic} onValueChange={setSelectedMic}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Select a microphone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Default Microphone</SelectItem>
+                    {mics.map((mic) => (
+                      <SelectItem key={mic.deviceId} value={mic.deviceId}>
+                        {mic.label || `Microphone ${mics.indexOf(mic) + 1}`}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                Microphone
-              </label>
-              <Select value={selectedMic} onValueChange={setSelectedMic}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Select a microphone" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="default">Default Microphone</SelectItem>
-                  {mics.map((mic) => (
-                    <SelectItem key={mic.deviceId} value={mic.deviceId}>
-                      {mic.label || `Mic ${mics.indexOf(mic) + 1}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+          </div>
+        )}
       </CardHeader>
-      <CardContent className="flex-grow flex flex-col p-6 pt-0 overflow-hidden">
-        <div ref={listRef} className="flex-1 overflow-y-auto space-y-3 pr-2 -mr-2">
-          {messages.length === 0 && (<div className="text-sm text-muted-foreground">Say something to Ananya...</div>)}
-          {messages.map((m, idx) => (<div key={idx} className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${m.role === "user" ? "ml-auto bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>{m.content}{m.role === 'assistant' && !m.content && <LoaderCircle className="size-4 animate-spin inline-block" />}</div>))}
-        </div>
-        <div className="flex justify-center items-center gap-2 py-2 border-t mt-3 text-xs text-muted-foreground"><Sparkles className="size-4" /> <span>Actions</span></div>
-        <div className="flex justify-center gap-2 pb-3">
-            <Button variant="outline" size="sm" onClick={() => onPlayAnimation?.('dance')}>Dance</Button>
-            <Button variant="outline" size="sm" onClick={() => onPlayAnimation?.('shy')}>Be Shy</Button>
-            <Button variant="ghost" size="sm" onClick={() => onPlayAnimation?.(null)}>Stop</Button>
-        </div>
-        <div className="mt-auto pt-3 border-t space-y-2">
-            {audioURL && (<div className="flex items-center gap-2"><audio className="w-full h-10" src={audioURL} controls /><Button variant="ghost" size="sm" onClick={() => { setAudioURL(""); setAudioBlob(null);}}>Clear</Button></div>)}
-            <div className="flex items-center gap-2">
-                <Input value={text} onChange={(e) => setText(e.target.value)} placeholder={isRecording ? "Recording..." : (characterState !== 'idle' ? `${characterState}...` : "Hi Ananya...")} disabled={isRecording || characterState !== 'idle'} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}/>
-                <Button variant={isRecording ? "destructive" : "secondary"} onClick={isRecording ? stop : () => start(selectedMic)} disabled={characterState !== 'idle'} title={isRecording ? "Stop recording" : "Record voice"}>{isRecording ? <MicOff className="size-4" /> : <Mic className="size-4" />}</Button>
-                <Button onClick={send} disabled={!canSend}>
-                    {characterState !== 'idle' ? <LoaderCircle className="size-4 animate-spin" /> : <Send className="size-4" />}
-                    <span className="ml-2 hidden sm:inline">Send</span>
+      
+      <CardContent className="flex-grow flex flex-col p-0 overflow-hidden">
+        {/* Message Area */}
+        <div ref={listRef} className="flex-1 overflow-y-auto p-6 space-y-5">
+          {messages.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-full text-center py-12">
+              <div className="mb-6">
+                <Sparkles className="h-16 w-16 text-pink-400 mx-auto mb-3 animate-pulse" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3 bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+                Start a conversation with Ananya
+              </h3>
+              <p className="text-base text-muted-foreground max-w-lg mb-6">
+                Ask me anything! I'm here to chat, help, or just keep you company. 💖
+              </p>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full max-w-2xl">
+                <Button variant="ghost" size="sm" onClick={() => setText("Hi Ananya! How are you?")} className="bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 px-4 py-3 h-auto">
+                  <div className="text-center">
+                    <div className="text-lg mb-1">👋</div>
+                    <div className="text-xs">Say Hello</div>
+                  </div>
                 </Button>
+                <Button variant="ghost" size="sm" onClick={() => setText("Tell me about yourself")} className="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-4 py-3 h-auto">
+                  <div className="text-center">
+                    <div className="text-lg mb-1">💫</div>
+                    <div className="text-xs">About You</div>
+                  </div>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setText("What can you help me with?")} className="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-4 py-3 h-auto">
+                  <div className="text-center">
+                    <div className="text-lg mb-1">✨</div>
+                    <div className="text-xs">Your Abilities</div>
+                  </div>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setText("How was your day?")} className="bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 px-4 py-3 h-auto">
+                  <div className="text-center">
+                    <div className="text-lg mb-1">☀️</div>
+                    <div className="text-xs">Daily Chat</div>
+                  </div>
+                </Button>
+              </div>
             </div>
+          )}
+          
+          {messages.map((m, idx) => (
+            <div key={idx} className={`flex gap-4 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
+              <div className={`flex-shrink-0 ${m.role === "user" ? "order-2" : ""}`}>
+                {m.role === "assistant" ? (
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-pink-400 via-purple-400 to-blue-400 p-0.5">
+                    <div className="h-full w-full rounded-full bg-white flex items-center justify-center">
+                      <div className="text-base">👧</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-white" />
+                  </div>
+                )}
+              </div>
+              
+              <div className={`flex-1 ${m.role === "user" ? "order-1" : ""}`}>
+                <div className={`max-w-[95%] ${m.role === "user" ? "ml-auto" : ""}`}>
+                  <div className={`rounded-2xl px-6 py-4 text-base relative group ${
+                    m.role === "user" 
+                      ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white ml-auto" 
+                      : "bg-muted/60 backdrop-blur-sm border border-border/20"
+                  }`}>
+                    {m.content ? (
+                      <>
+                        <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyMessage(m.content)}
+                          className={`absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity ${
+                            m.role === "user" ? "text-white/70 hover:text-white" : "text-muted-foreground"
+                          }`}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <LoaderCircle className="h-5 w-5 animate-spin" />
+                        <span className="text-muted-foreground">Ananya is thinking...</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className={`text-xs text-muted-foreground mt-2 ${m.role === "user" ? "text-right" : ""}`}>
+                    {formatTime()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Audio Preview */}
+        {audioURL && (
+          <div className="px-4 py-2 border-t border-border/20 bg-muted/20">
+            <div className="flex items-center gap-3">
+              <Volume2 className="h-4 w-4 text-muted-foreground" />
+              <audio className="flex-1 h-8" src={audioURL} controls />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => { setAudioURL(""); setAudioBlob(null); }}
+                className="h-8 w-8 p-0"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Input Area */}
+        <div className="p-6 border-t border-border/20 bg-gradient-to-r from-background/80 to-background/60 backdrop-blur-sm">
+          <div className="flex items-end gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Input 
+                  value={text} 
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder={
+                    isRecording 
+                      ? "🎤 Recording..." 
+                      : characterState !== 'idle' 
+                        ? `Ananya is ${characterState}...` 
+                        : "Type your message to Ananya..."
+                  }
+                  disabled={isRecording || characterState !== 'idle'}
+                  onKeyDown={(e) => { 
+                    if (e.key === "Enter" && !e.shiftKey) { 
+                      e.preventDefault(); 
+                      send(); 
+                    }
+                  }}
+                  className="h-14 pr-12 text-base bg-background/80 backdrop-blur-sm border-border/30 focus:border-pink-300 focus:ring-pink-200 rounded-xl"
+                />
+                {text && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setText("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            </div>
+            
+            <Button 
+              variant={isRecording ? "destructive" : "outline"} 
+              onClick={isRecording ? stop : () => start(selectedMic)} 
+              disabled={characterState !== 'idle'}
+              className={`h-14 w-14 p-0 rounded-xl ${
+                isRecording 
+                  ? "animate-pulse" 
+                  : "bg-gradient-to-br from-pink-500/10 to-purple-500/10 hover:from-pink-500/20 hover:to-purple-500/20 border-pink-200"
+              }`}
+              title={isRecording ? "Stop recording" : "Record voice"}
+            >
+              {isRecording ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+            </Button>
+            
+            <Button 
+              onClick={send} 
+              disabled={!canSend}
+              className="h-14 px-8 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+            >
+              {characterState !== 'idle' ? (
+                <LoaderCircle className="h-6 w-6 animate-spin" />
+              ) : (
+                <Send className="h-6 w-6" />
+              )}
+              <span className="ml-3 hidden sm:inline text-base font-medium">Send</span>
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

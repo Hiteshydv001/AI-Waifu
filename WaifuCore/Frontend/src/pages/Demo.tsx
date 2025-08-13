@@ -92,13 +92,13 @@ const Demo = () => {
   }, []);
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       {/* Navigation */}
       <nav className="container max-w-6xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between py-4 px-6 mx-4 my-4 backdrop-blur-md bg-white/80 border border-gray-200 rounded-2xl shadow-lg">
           <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg" style={{ backgroundImage: "var(--gradient-primary)" }} />
-            <span className="font-semibold">Girlfriendie</span>
+            <img src="/ananya-character.png" alt="Ananya" className="h-8 w-8 rounded-lg object-cover" />
+            <span className="font-semibold text-gray-900">Girlfriendie</span>
           </Link>
           <div className="hidden sm:flex items-center gap-3">
             <Button variant="ghost" asChild>
@@ -119,13 +119,13 @@ const Demo = () => {
 
       {/* Hero Section */}
       <section className="container max-w-6xl mx-auto px-4 pb-8">
-        <div ref={heroRef} className="hero-grid rounded-2xl border p-8 sm:p-14 surface-card">
+        <div ref={heroRef} className="hero-grid rounded-3xl backdrop-blur-lg bg-white/90 border border-gray-200 p-8 sm:p-14 shadow-2xl">
           <div className="mx-auto max-w-4xl text-center">
             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-4">
-              <span className="text-gradient">Live Demo</span>
-              <span> & Showcase</span>
+              <span className="text-gradient text-gray-900">Live Demo</span>
+              <span className="text-gray-900"> & Showcase</span>
             </h1>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-lg text-gray-600 mb-8">
               Experience Project Ananya in action. Watch the demo video and see how advanced AI companionship comes to life with cutting-edge technology.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -134,8 +134,10 @@ const Demo = () => {
                   <Sparkles className="mr-1" /> Try Live Demo
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full sm:w-auto">
-                <ExternalLink className="mr-1" /> View Source
+              <Button variant="outline" className="w-full sm:w-auto" asChild>
+                <a href="https://github.com/Hiteshydv001/AI-Waifu" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="mr-1" /> View Source
+                </a>
               </Button>
             </div>
           </div>
@@ -145,42 +147,35 @@ const Demo = () => {
       {/* Video Demo Section */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-4 border border-purple-200">
             <Play className="h-4 w-4" />
             🎥 Video Demonstration
           </div>
-          <h2 className="text-3xl font-extrabold tracking-tight mb-4">See Ananya in Action</h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+          <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">See Ananya in Action</h2>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             Watch this comprehensive demo showcasing all the key features, from voice interaction to 3D avatar expressions and real-time AI responses.
           </p>
         </div>
         
         <div className="max-w-4xl mx-auto">
-          <Card className="surface-card overflow-hidden">
+          <Card className="backdrop-blur-lg bg-white/80 border border-gray-200 overflow-hidden">
             <CardContent className="p-0">
               <div className="relative aspect-video bg-muted/20 rounded-lg overflow-hidden">
-                <iframe
+                <iframe 
+                  title="vimeo-player" 
+                  src="https://player.vimeo.com/video/1109113682?h=d71fcb76a4&title=0&byline=0&portrait=0&controls=1&color=8b5cf6" 
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=example"
-                  title="Project Ananya - AI Companion Demo"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  frameBorder="0" 
+                  referrerPolicy="strict-origin-when-cross-origin" 
+                  allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"   
                   allowFullScreen
                 />
-                {/* Fallback for when iframe doesn't load */}
-                <div className="absolute inset-0 flex items-center justify-center bg-muted/50 backdrop-blur-sm">
-                  <div className="text-center">
-                    <Play className="h-16 w-16 mx-auto mb-4 text-primary" />
-                    <h3 className="text-xl font-semibold mb-2">Demo Video</h3>
-                    <p className="text-muted-foreground">Project Ananya - AI Companion Showcase</p>
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>
           
           <div className="mt-8 text-center">
-            <p className="text-muted-foreground mb-4">
+            <p className="text-gray-600 mb-4">
               This demo showcases real-time voice interaction, 3D avatar expressions, and AI-powered conversations.
             </p>
             <div className="flex flex-wrap justify-center gap-2">
@@ -196,19 +191,19 @@ const Demo = () => {
       {/* Demo Features */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-extrabold tracking-tight mb-4">What You'll See</h2>
-          <p className="text-lg text-muted-foreground">Key features demonstrated in the video</p>
+          <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">What You'll See</h2>
+          <p className="text-lg text-gray-600">Key features demonstrated in the video</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {demoFeatures.map((feature, index) => (
-            <Card key={index} className="surface-card text-center hover:shadow-lg transition-all duration-300 group">
+            <Card key={index} className="backdrop-blur-lg bg-white/80 border border-gray-200 text-center hover:shadow-lg transition-all duration-300 group">
               <CardContent className="p-6">
-                <div className="p-3 bg-primary/10 rounded-lg text-primary w-fit mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
+                <div className="p-3 bg-blue-100 rounded-lg text-blue-600 w-fit mx-auto mb-4 group-hover:bg-blue-200 transition-colors">
                   {feature.icon}
                 </div>
-                <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm">{feature.description}</p>
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">{feature.title}</h3>
+                <p className="text-gray-600 text-sm">{feature.description}</p>
               </CardContent>
             </Card>
           ))}
@@ -218,13 +213,13 @@ const Demo = () => {
       {/* Project Stats */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-extrabold tracking-tight mb-4">Performance Metrics</h2>
-          <p className="text-lg text-muted-foreground">Technical specifications that power the experience</p>
+          <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">Performance Metrics</h2>
+          <p className="text-lg text-gray-600">Technical specifications that power the experience</p>
         </div>
         
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {projectStats.map((stat, index) => (
-            <Card key={index} className="surface-card text-center">
+            <Card key={index} className="backdrop-blur-lg bg-white/80 border border-gray-200 text-center">
               <CardContent className="p-6">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <div className="text-primary">
@@ -232,7 +227,7 @@ const Demo = () => {
                   </div>
                   <span className="text-2xl font-bold text-gradient">{stat.value}</span>
                 </div>
-                <p className="text-muted-foreground text-sm">{stat.label}</p>
+                <p className="text-gray-600 text-sm">{stat.label}</p>
               </CardContent>
             </Card>
           ))}
@@ -243,14 +238,14 @@ const Demo = () => {
       <section className="container max-w-6xl mx-auto px-4 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 border border-blue-200 px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Sparkles className="h-4 w-4" />
               🚀 Project Information
             </div>
-            <h2 className="text-3xl font-extrabold tracking-tight mb-6">
+            <h2 className="text-3xl font-extrabold tracking-tight mb-6 text-gray-900">
               The Future of AI Companionship
             </h2>
-            <div className="space-y-4 text-muted-foreground">
+            <div className="space-y-4 text-gray-600">
               <p>
                 Project Ananya represents a breakthrough in AI companion technology, combining advanced language models with expressive 3D avatars and natural voice interaction.
               </p>
@@ -282,7 +277,7 @@ const Demo = () => {
           </div>
           
           <div className="space-y-6">
-            <Card className="surface-card">
+            <Card className="backdrop-blur-lg bg-white/80 border border-gray-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BrainCircuit className="h-5 w-5" />
@@ -291,25 +286,25 @@ const Demo = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Backend</span>
+                  <span className="text-sm text-gray-600">Backend</span>
                   <Badge variant="secondary">Python + FastAPI</Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Frontend</span>
+                  <span className="text-sm text-gray-600">Frontend</span>
                   <Badge variant="secondary">React + TypeScript</Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">3D Engine</span>
+                  <span className="text-sm text-gray-600">3D Engine</span>
                   <Badge variant="secondary">Three.js + VRM</Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">AI Models</span>
+                  <span className="text-sm text-gray-600">AI Models</span>
                   <Badge variant="secondary">Multi-provider</Badge>
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="surface-card">
+            <Card className="backdrop-blur-lg bg-white/80 border border-gray-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
@@ -317,13 +312,15 @@ const Demo = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground text-sm mb-4">
+                <p className="text-gray-600 text-sm mb-4">
                   Join our growing community of developers and AI enthusiasts building the future of digital companionship.
                 </p>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline">
-                    <ExternalLink className="h-4 w-4 mr-1" />
-                    GitHub
+                  <Button size="sm" variant="outline" asChild>
+                    <a href="https://github.com/Hiteshydv001/AI-Waifu" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      GitHub
+                    </a>
                   </Button>
                   <Button size="sm" variant="outline">
                     <MessageCircle className="h-4 w-4 mr-1" />
@@ -339,25 +336,25 @@ const Demo = () => {
       {/* Testimonials */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-extrabold tracking-tight mb-4">What People Are Saying</h2>
-          <p className="text-lg text-muted-foreground">Feedback from our community</p>
+          <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">What People Are Saying</h2>
+          <p className="text-lg text-gray-600">Feedback from our community</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="surface-card">
+            <Card key={index} className="backdrop-blur-lg bg-white/80 border border-gray-200">
               <CardContent className="p-6">
                 <div className="flex items-center gap-1 mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <p className="text-muted-foreground text-sm mb-4 italic">
+                <p className="text-gray-600 text-sm mb-4 italic">
                   "{testimonial.content}"
                 </p>
                 <div>
                   <p className="font-semibold text-sm">{testimonial.name}</p>
-                  <p className="text-muted-foreground text-xs">{testimonial.role}</p>
+                  <p className="text-gray-600 text-xs">{testimonial.role}</p>
                 </div>
               </CardContent>
             </Card>
@@ -367,12 +364,12 @@ const Demo = () => {
 
       {/* Call to Action */}
       <section className="container max-w-6xl mx-auto px-4 py-16">
-        <Card className="surface-card text-center p-8 sm:p-12">
+        <Card className="backdrop-blur-lg bg-white/80 border border-gray-200 text-center p-8 sm:p-12">
           <div className="mx-auto max-w-2xl">
-            <h2 className="text-3xl font-extrabold tracking-tight mb-4">
+            <h2 className="text-3xl font-extrabold tracking-tight mb-4 text-gray-900">
               Ready to Experience Ananya?
             </h2>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-lg text-gray-600 mb-8">
               Try the live demo now or explore the documentation to build your own AI companion.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
