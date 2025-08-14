@@ -33,7 +33,7 @@ interface ChatInterfaceProps {
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ onStatusChange, onPlayAnimation }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
-  const [llm, setLlm] = useState(() => localStorage.getItem("pref_llm") || "groq");
+  const [llm, setLlm] = useState(() => localStorage.getItem("pref_llm") || "gemini");
   const [tts, setTts] = useState(() => localStorage.getItem("pref_tts") || "coqui");
   const [characterState, setCharacterState] = useState<CharacterStatus["state"]>("idle");
   const [mics, setMics] = useState<MediaDeviceInfo[]>([]);
@@ -46,9 +46,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onStatusChange, onPlayAni
   const ws = useRef<WebSocket | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
-  // These are the states that were not being updated correctly.
-  const [llmOptions, setLlmOptions] = useState([{ value: "groq", label: "Groq (Default)" }]);
-  const [ttsOptions, setTtsOptions] = useState([{ value: "coqui", label: "Coqui (Default)" }]);
+  // These are the hardcoded default options that show even when backend is not running
+  const [llmOptions, setLlmOptions] = useState([
+    { value: "gemini", label: "Gemini 1.5 Flash" },
+    { value: "groq-llama3-8b-8192", label: "Llama 3 8B (Groq)" },
+    { value: "groq-llama3-70b-8192", label: "Llama 3 70B (Groq)" }
+  ]);
+  const [ttsOptions, setTtsOptions] = useState([
+    { value: "coqui", label: "Coqui TTS" },
+    { value: "kokoro", label: "Kokoro TTS" },
+    { value: "elevenlabs", label: "ElevenLabs TTS" }
+  ]);
 
   // --- THIS ENTIRE useEffect BLOCK WAS MISSING AND IS NOW RESTORED ---
   useEffect(() => {
@@ -58,7 +66,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onStatusChange, onPlayAni
         const response = await fetch(`${API_BASE_URL}/api/settings`);
         if (!response.ok) throw new Error("Failed to fetch settings");
         const data = await response.json();
-        setLlmOptions(data.llm_providers.map((p: string) => ({ value: p, label: p.charAt(0).toUpperCase() + p.slice(1) })));
+        
+        // Handle LLM providers - they now come as objects with value and label
+        if (Array.isArray(data.llm_providers)) {
+          if (data.llm_providers.length > 0 && typeof data.llm_providers[0] === 'object') {
+            // New format: array of objects with value and label
+            setLlmOptions(data.llm_providers);
+          } else {
+            // Old format: array of strings
+            setLlmOptions(data.llm_providers.map((p: string) => ({ value: p, label: p.charAt(0).toUpperCase() + p.slice(1) })));
+          }
+        }
+        
+        // Handle TTS providers - they come as strings
         setTtsOptions(data.tts_providers.map((p: string) => ({ value: p, label: p.charAt(0).toUpperCase() + p.slice(1) })));
       } catch (error) {
         console.error("Could not fetch settings from backend:", error);

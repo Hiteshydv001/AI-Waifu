@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { VRM, VRMExpressionPresetName, VRMLoaderPlugin, VRMHumanBoneName } from "@pixiv/three-vrm";
+import { VRM, VRMExpressionPresetName, VRMLoaderPlugin } from "@pixiv/three-vrm";
 
 interface VRMViewerProps {
   characterState: "idle" | "thinking" | "speaking";
@@ -18,8 +18,7 @@ const VRMViewer: React.FC<VRMViewerProps> = ({ characterState, emotion, actionAn
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const stateRef = useRef({ characterState, emotion, actionAnimation });
   const vrmRef = useRef<VRM | null>(null);
-  const mixerRef = useRef<THREE.AnimationMixer | null>(null);
-  const animationActions = useRef<Record<string, THREE.AnimationAction>>({});
+  const spinningRef = useRef(true); // Start spinning by default
 
   useEffect(() => {
     stateRef.current = { characterState, emotion, actionAnimation };
@@ -51,107 +50,13 @@ const VRMViewer: React.FC<VRMViewerProps> = ({ characterState, emotion, actionAn
     const gltfLoader = new GLTFLoader();
     gltfLoader.register((parser) => new VRMLoaderPlugin(parser));
     
-    // Load VRM and create simple, reliable animations
+    // Load VRM and focus on facial expressions only
     gltfLoader.loadAsync("/ananya.vrm").then((gltf) => {
       const vrm = gltf.userData.vrm;
       vrmRef.current = vrm;
       scene.add(vrm.scene);
-      const mixer = new THREE.AnimationMixer(vrm.scene);
-      mixerRef.current = mixer;
       
-      console.log("VRM loaded successfully");
-      console.log("VRM scene name:", vrm.scene.name);
-      
-      // 1. SPIN ANIMATION - Simple Y rotation
-      const spinTrack = new THREE.NumberKeyframeTrack(
-        vrm.scene.name + '.rotation[y]',
-        [0, 2],
-        [0, Math.PI * 2]
-      );
-      const spinClip = new THREE.AnimationClip('spin', 2, [spinTrack]);
-      const spinAction = mixer.clipAction(spinClip);
-      spinAction.setLoop(THREE.LoopRepeat, Infinity);
-      animationActions.current['spin'] = spinAction;
-      console.log("Spin animation created");
-      
-      // 2. DANCE ANIMATION - Simple up and down bouncing
-      const dancePositionTrack = new THREE.VectorKeyframeTrack(
-        vrm.scene.name + '.position',
-        [0, 0.25, 0.5, 0.75, 1.0],
-        [
-          0, 0, 0,    // start
-          0, 0.15, 0, // bounce up
-          0, 0, 0,    // down
-          0, 0.15, 0, // bounce up
-          0, 0, 0     // down
-        ]
-      );
-      const danceClip = new THREE.AnimationClip('dance', 1, [dancePositionTrack]);
-      const danceAction = mixer.clipAction(danceClip);
-      danceAction.setLoop(THREE.LoopRepeat, Infinity);
-      animationActions.current['dance'] = danceAction;
-      console.log("Dance animation created - simple bouncing");
-      
-      // 3. SHY ANIMATION - Only facial expressions
-      const shyTrack = new THREE.NumberKeyframeTrack(
-        vrm.scene.name + '.userData.shyTrigger',
-        [0, 3],
-        [0, 1]
-      );
-      const shyClip = new THREE.AnimationClip('shy', 3, [shyTrack]);
-      const shyAction = mixer.clipAction(shyClip);
-      shyAction.setLoop(THREE.LoopOnce, 1);
-      shyAction.clampWhenFinished = true;
-      
-      // Override shy action play to trigger facial expressions
-      const originalShyPlay = shyAction.play.bind(shyAction);
-      shyAction.play = function() {
-        if (vrm.expressionManager) {
-          console.log("Triggering shy facial expressions");
-          
-          // Clear current expressions
-          Object.values(VRMExpressionPresetName).forEach(preset => {
-            if (typeof preset === 'string') {
-              vrm.expressionManager?.setValue(preset, 0);
-            }
-          });
-          
-          // Set shy/blushing expressions
-          vrm.expressionManager.setValue(VRMExpressionPresetName.Happy, 0.9);
-          vrm.expressionManager.setValue(VRMExpressionPresetName.Blink, 0.7);
-          
-          // Reset expressions after 2.5 seconds
-          setTimeout(() => {
-            if (vrm.expressionManager) {
-              Object.values(VRMExpressionPresetName).forEach(preset => {
-                if (typeof preset === 'string') {
-                  vrm.expressionManager?.setValue(preset, 0);
-                }
-              });
-              vrm.expressionManager.setValue(VRMExpressionPresetName.Neutral, 1);
-            }
-          }, 2500);
-        }
-        return originalShyPlay();
-      };
-      
-      animationActions.current['shy'] = shyAction;
-      console.log("Shy animation created - facial expressions only");
-      
-      // 4. WAVE ANIMATION - Placeholder
-      const waveTrack = new THREE.NumberKeyframeTrack(
-        vrm.scene.name + '.userData.waveTrigger',
-        [0, 2.5],
-        [0, 1]
-      );
-      const waveClip = new THREE.AnimationClip('wave', 2.5, [waveTrack]);
-      const waveAction = mixer.clipAction(waveClip);
-      waveAction.setLoop(THREE.LoopOnce, 1);
-      waveAction.clampWhenFinished = true;
-      animationActions.current['wave'] = waveAction;
-      console.log("Wave animation created");
-      
-      console.log("All animations created:", Object.keys(animationActions.current));
+      console.log("VRM loaded successfully - facial expressions only mode");
       setReady(true);
     }).catch(e => {
         console.error("VRM loading failed:", e);
@@ -191,56 +96,86 @@ const VRMViewer: React.FC<VRMViewerProps> = ({ characterState, emotion, actionAn
         const currentState = stateRef.current;
         const manager = vrm.expressionManager;
         
-        // Lip sync
+        // Enhanced lip sync with more realistic mouth movements
         const lipTarget = currentState.characterState === 'speaking' ? 1.0 : 0.0;
         lipValue = THREE.MathUtils.lerp(lipValue, lipTarget, 1 - Math.exp(-25 * delta));
-        manager?.setValue(VRMExpressionPresetName.Aa, lipValue);
+        
+        // Multiple mouth shapes for more realistic speech
+        if (currentState.characterState === 'speaking') {
+          // Simulate different mouth shapes during speech
+          const time = clock.getElapsedTime();
+          const mouthVariation = Math.sin(time * 15) * 0.3 + 0.7; // Varies between 0.4 and 1.0
+          manager?.setValue(VRMExpressionPresetName.Aa, lipValue * mouthVariation);
+          manager?.setValue(VRMExpressionPresetName.Ih, lipValue * (1 - mouthVariation) * 0.5);
+          manager?.setValue(VRMExpressionPresetName.Ou, lipValue * Math.sin(time * 8) * 0.3);
+        } else {
+          // Close mouth when not speaking
+          manager?.setValue(VRMExpressionPresetName.Aa, 0);
+          manager?.setValue(VRMExpressionPresetName.Ih, 0);
+          manager?.setValue(VRMExpressionPresetName.Ou, 0);
+        }
 
-        // Emotions
+        // Enhanced emotion mapping with more nuanced expressions
         const emotionMap = {
-            happy: { [VRMExpressionPresetName.Happy]: 1.0, [VRMExpressionPresetName.Relaxed]: 0.7 },
-            sad: { [VRMExpressionPresetName.Sad]: 1.0 },
-            angry: { [VRMExpressionPresetName.Angry]: 1.0 },
-            shy: { [VRMExpressionPresetName.Happy]: 0.3, [VRMExpressionPresetName.Blink]: 1.0 },
-            neutral: { [VRMExpressionPresetName.Neutral]: 1.0 }
+            happy: { 
+              [VRMExpressionPresetName.Happy]: 1.0, 
+              [VRMExpressionPresetName.Relaxed]: 0.7,
+              [VRMExpressionPresetName.LookUp]: 0.3
+            },
+            sad: { 
+              [VRMExpressionPresetName.Sad]: 1.0,
+              [VRMExpressionPresetName.LookDown]: 0.5
+            },
+            angry: { 
+              [VRMExpressionPresetName.Angry]: 1.0,
+              [VRMExpressionPresetName.Surprised]: 0.3
+            },
+            shy: { 
+              [VRMExpressionPresetName.Happy]: 0.4, 
+              [VRMExpressionPresetName.Blink]: 0.8,
+              [VRMExpressionPresetName.LookDown]: 0.6
+            },
+            thinking: {
+              [VRMExpressionPresetName.LookUp]: 0.7,
+              [VRMExpressionPresetName.Neutral]: 0.5
+            },
+            neutral: { 
+              [VRMExpressionPresetName.Neutral]: 1.0 
+            }
         };
+        
         const targetExpression = emotionMap[currentState.emotion as keyof typeof emotionMap] || emotionMap.neutral;
+        console.log("Setting emotion:", currentState.emotion, "Target expression:", targetExpression);
         Object.values(VRMExpressionPresetName).forEach(preset => {
             if (typeof preset !== 'string') return;
             const targetWeight = targetExpression[preset as VRMExpressionPresetName] || 0;
             const currentWeight = manager?.getValue(preset) ?? 0;
             const newWeight = THREE.MathUtils.lerp(currentWeight, targetWeight, 1 - Math.exp(-12 * delta));
+            if (targetWeight > 0) {
+              console.log(`Setting ${preset} to ${newWeight}`);
+            }
             manager?.setValue(preset, newWeight);
         });
         
-        // Breathing animation (only when idle)
-        if (!currentState.actionAnimation || currentState.actionAnimation === 'idle') {
-          const hips = vrm.humanoid.getBoneNode(VRMHumanBoneName.Hips);
-          if (hips) {
-            hips.position.y = 0.005 * Math.sin(clock.getElapsedTime() * 0.7);
-          }
-        }
-        
-        // Laugh animation
-        if (currentState.actionAnimation === 'laugh') {
-          const hips = vrm.humanoid.getBoneNode(VRMHumanBoneName.Hips);
-          if (hips) {
-            hips.position.y += 0.02 * Math.sin(clock.getElapsedTime() * 20);
-          }
-        }
-        
-        // Blinking
+        // Enhanced blinking with more natural timing
         blinkCountdown -= delta;
         if (blinkCountdown < 0) {
+            const blinkDuration = 0.15; // Quick blink
             manager?.setValue(VRMExpressionPresetName.Blink, 1.0);
-            blinkCountdown = Math.random() * 4 + 1.5;
-        } else {
-            const currentBlink = manager?.getValue(VRMExpressionPresetName.Blink) ?? 0;
-            if (currentBlink > 0) manager?.setValue(VRMExpressionPresetName.Blink, Math.max(0, currentBlink - delta * 10.0));
+            
+            setTimeout(() => {
+              manager?.setValue(VRMExpressionPresetName.Blink, 0);
+            }, blinkDuration * 1000);
+            
+            blinkCountdown = Math.random() * 3 + 1.5; // More frequent blinking
+        }
+        
+        // Continuous spinning animation
+        if (spinningRef.current && vrm.scene) {
+          vrm.scene.rotation.y += delta * 1.5; // Spin speed: 1.5 radians per second
         }
         
         vrm.lookAt.target = eyeTarget;
-        mixerRef.current?.update(delta);
         vrm.update(delta);
       }
       
@@ -259,62 +194,37 @@ const VRMViewer: React.FC<VRMViewerProps> = ({ characterState, emotion, actionAn
     };
   }, []);
 
+  // Handle spinning animation control
   useEffect(() => {
-    const mixer = mixerRef.current;
-    if (!mixer || !Object.keys(animationActions.current).length) {
-      console.log("Animation effect - mixer or actions not ready");
-      return;
-    }
-    
-    console.log("=== ANIMATION REQUESTED ===");
-    console.log("Requested animation:", actionAnimation);
-    console.log("Available actions:", Object.keys(animationActions.current));
-    
-    // Stop all current animations
-    Object.values(animationActions.current).forEach(action => {
-      if (action.isRunning()) {
-        console.log("Stopping animation:", action.getClip().name);
-        action.stop();
+    if (actionAnimation === 'stop-spin') {
+      console.log("Stopping spin");
+      spinningRef.current = false;
+      
+      // Reset rotation to face forward when stopping
+      const vrm = vrmRef.current;
+      if (vrm && vrm.scene) {
+        vrm.scene.rotation.y = 0;
       }
-    });
-    
-    // Start requested animation
-    if (actionAnimation && animationActions.current[actionAnimation]) {
-      const action = animationActions.current[actionAnimation];
-      console.log("Starting animation:", actionAnimation);
-      console.log("Animation details:", {
-        name: action.getClip().name,
-        duration: action.getClip().duration,
-        tracks: action.getClip().tracks.length
-      });
-      
-      action.reset();
-      action.play();
-      
-      console.log("Animation started successfully. IsRunning:", action.isRunning());
-    } else if (actionAnimation) {
-      console.warn("Animation not found:", actionAnimation);
-    } else {
-      console.log("No animation requested");
     }
+    // Note: Other emotions don't affect spinning state, only stop-spin does
   }, [actionAnimation]);
 
   return (
     <div ref={containerRef} className={`relative w-full h-[500px] md:h-[600px] lg:h-[650px] rounded-xl border bg-card/40 shadow-lg ${className ?? ""}`}>
       <canvas ref={canvasRef} className="size-full rounded-xl cursor-grab active:cursor-grabbing" />
       
-      {/* 360° View Label */}
+      {/* Facial Expression Focus Label */}
       <div className="absolute top-4 left-4 bg-gradient-to-r from-pink-500/90 to-purple-600/90 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm font-medium shadow-lg border border-white/20">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-          <span>360° Interactive View</span>
+          <span>Facial Expressions & Lip Sync</span>
         </div>
       </div>
       
       {/* Instructions Overlay */}
       <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-xs opacity-70 hover:opacity-100 transition-opacity">
         <div className="flex items-center gap-2">
-          <span>🖱️ Drag to rotate • 🔍 Scroll to zoom</span>
+          <span>� Watch mouth movements • � Emotion changes</span>
         </div>
       </div>
       

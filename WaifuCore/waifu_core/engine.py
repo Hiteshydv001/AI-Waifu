@@ -6,6 +6,15 @@ from waifu_core.services.llm_service import LLMService
 from waifu_core.services.memory_service import MemoryService
 from waifu_core.services.tts.coqui_tts import CoquiTTSService
 from waifu_core.services.tts.kokoro_tts import KokoroTTSService
+
+# Try to import ElevenLabs TTS service, handle import error gracefully
+try:
+    from waifu_core.services.tts.elevenlabs_tts import ElevenLabsTTSService
+    ELEVENLABS_AVAILABLE = True
+except ImportError as e:
+    print(f"ElevenLabs TTS service unavailable: {e}")
+    ELEVENLABS_AVAILABLE = False
+
 import yaml
 from pathlib import Path
 
@@ -23,6 +32,11 @@ class ConversationEngine:
             self.tts_service = CoquiTTSService(config=SERVICE_CONFIG['tts']['coqui'])
         elif tts_provider.lower() == "kokoro":
             self.tts_service = KokoroTTSService(config=SERVICE_CONFIG['tts']['kokoro'])
+        elif tts_provider.lower() == "elevenlabs":
+            if ELEVENLABS_AVAILABLE:
+                self.tts_service = ElevenLabsTTSService(config=SERVICE_CONFIG['tts']['elevenlabs'])
+            else:
+                raise ValueError(f"ElevenLabs TTS provider is not available. Please install the 'elevenlabs' package.")
         else:
             raise ValueError(f"Invalid TTS provider selected: {tts_provider}")
             

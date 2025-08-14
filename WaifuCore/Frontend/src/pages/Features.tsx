@@ -64,13 +64,13 @@ const avatarFeatures = [
   },
   {
     icon: <Activity className="h-6 w-6" />,
-    title: "Full-Body Animations",
-    description: "Complex actions like dancing or acting shy, triggered manually or automatically by AI based on conversation context."
+    title: "Facial Expression Control",
+    description: "Rich facial expressions triggered manually or automatically by AI based on conversation context - happy, sad, shy, angry, thinking."
   },
   {
     icon: <Heart className="h-6 w-6" />,
-    title: "Procedural Idle Animation",
-    description: "Continuous, gentle swaying motion in body and head to avoid robotic appearance, making her feel constantly alive."
+    title: "Enhanced Lip Sync",
+    description: "Multiple mouth shapes and realistic speaking movements that create natural-looking speech with varied mouth positions."
   }
 ];
 

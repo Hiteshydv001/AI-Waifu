@@ -30,6 +30,7 @@ const Index = () => {
   });
   
   const [actionAnimation, setActionAnimation] = useState<string | null>(null);
+  const [isSpinning, setIsSpinning] = useState(true); // Track spinning state separately
   const [isInteracting, setIsInteracting] = useState(false);
   const [userCount, setUserCount] = useState(1247);
   const demoSectionRef = useRef<HTMLDivElement>(null);
@@ -47,9 +48,21 @@ const Index = () => {
     setIsInteracting(status.state !== 'idle');
   }, []);
   
-  const handlePlayAnimation = useCallback((animationName: string | null) => {
-    console.log("Index.tsx - handlePlayAnimation called with:", animationName);
-    setActionAnimation(animationName);
+  const handlePlayAnimation = useCallback((actionName: string) => {
+    console.log("Index.tsx - handleAction called with:", actionName);
+    if (actionName === 'stop-spin') {
+      // Stop spinning but keep current emotion
+      setActionAnimation('stop-spin');
+      setIsSpinning(false);
+    } else {
+      // Update character status with new emotion (for all non-stop-spin actions)
+      setCharacterStatus(prev => ({
+        ...prev,
+        animation: actionName
+      }));
+      // Clear the actionAnimation so it doesn't interfere with emotion display
+      setActionAnimation(null);
+    }
   }, []);
 
   return (
@@ -336,7 +349,7 @@ const Index = () => {
               <div className="space-y-6">
                 <ActionsPanel 
                   onPlayAnimation={handlePlayAnimation}
-                  isPlaying={actionAnimation !== null}
+                  isPlaying={false} // Buttons should never be disabled for emotions
                 />
                 
                 {/* Status Card */}

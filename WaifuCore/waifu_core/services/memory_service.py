@@ -22,7 +22,7 @@ class MemoryService:
         )
         print("Long-Term Memory Service ready.")
 
-    def add_memories(self, facts: list[str], user_id: str = "senpai"):
+    def add_memories(self, facts: list[str], user_id: str = "user"):
         if not facts:
             return
 
@@ -43,7 +43,7 @@ class MemoryService:
             ids=new_memory_ids
         )
 
-    def retrieve_relevant_memories(self, query: str, user_id: str = "senpai") -> list[str]:
+    def retrieve_relevant_memories(self, query: str, user_id: str = "user") -> list[str]:
         if not query:
             return []
             

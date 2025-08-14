@@ -59,7 +59,7 @@ class LLMService:
 
         if self.provider == LLMProvider.GEMINI:
             self._init_gemini()
-        elif self.provider == LLMProvider.GROQ:
+        elif self.provider.value.startswith("groq-"):
             self._init_groq()
         elif self.provider == LLMProvider.OLLAMA:
             self._init_ollama()
@@ -81,7 +81,7 @@ class LLMService:
             raise ValueError("Gemini API key not found. Set GEMINI_API_KEY environment variable or add to services.yaml")
         
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(self.config['models'][self.provider])
+        self.model = genai.GenerativeModel(self.config['models'][self.provider.value])
         print("Gemini AI client initialized")
 
     def _init_groq(self):
@@ -185,7 +185,7 @@ class LLMService:
         self.history.append({"role": "user", "content": user_input})
 
         response = await self.client.chat.completions.create(
-            model=self.config['models'][self.provider],
+            model=self.config['models'][self.provider.value],
             messages=self.history,
             temperature=self.config['temperature'],
             max_tokens=self.config['max_tokens'],
@@ -251,7 +251,7 @@ class LLMService:
         """Extract memories using OpenAI-compatible APIs"""
         try:
             response = await self.client.chat.completions.create(
-                model=self.config['models'][self.provider],
+                model=self.config['models'][self.provider.value],
                 messages=[{"role": "system", "content": prompt}],
                 temperature=0.0,
             )

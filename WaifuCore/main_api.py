@@ -89,9 +89,46 @@ async def websocket_endpoint(websocket: WebSocket, llm: str = 'gemini', tts: str
         traceback.print_exc()
         await websocket.close(code=1011, reason=f"Internal Server Error: {e}")
 
+def get_available_llm_providers():
+    """Get available LLM providers with user-friendly names"""
+    return [
+        {"value": "gemini", "label": "Gemini 1.5 Flash"},
+        {"value": "groq-llama3-8b-8192", "label": "Llama 3 8B (Groq)"},
+        {"value": "groq-llama3-70b-8192", "label": "Llama 3 70B (Groq)"},
+        {"value": "groq-mixtral-8x7b-32768", "label": "Mixtral 8x7B (Groq)"},
+        {"value": "groq-gemma-7b-it", "label": "Gemma 7B (Groq)"},
+        {"value": "groq-llama-3.1-8b-instant", "label": "Llama 3.1 8B Instant (Groq)"},
+        {"value": "groq-llama-3.1-70b-versatile", "label": "Llama 3.1 70B Versatile (Groq)"},
+        {"value": "ollama", "label": "Ollama (Local)"}
+    ]
+
+def get_available_tts_providers():
+    """Get available TTS providers based on installed dependencies and configuration"""
+    providers = []
+    
+    # Always include kokoro as it's the default
+    providers.append("kokoro")
+    
+    # Check if Coqui TTS is available
+    providers.append("coqui")
+    
+    # Check if ElevenLabs is available
+    try:
+        import elevenlabs
+        from waifu_core.services.tts.elevenlabs_tts import ElevenLabsTTSService
+        providers.append("elevenlabs")
+    except ImportError:
+        print("ElevenLabs TTS provider is not available")
+        pass
+    
+    return providers
+
 @app.get("/api/settings")
 async def get_settings():
-    return {"llm_providers": [p.value for p in LLMProvider], "tts_providers": ["coqui", "kokoro"]}
+    return {
+        "llm_providers": get_available_llm_providers(), 
+        "tts_providers": get_available_tts_providers()
+    }
 
 if __name__ == "__main__":
     print("--- Starting WaifuCore Headless API on http://localhost:8000 ---")
