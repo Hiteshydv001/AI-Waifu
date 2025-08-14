@@ -50,7 +50,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onStatusChange, onPlayAni
   const [llmOptions, setLlmOptions] = useState([
     { value: "gemini", label: "Gemini 1.5 Flash" },
     { value: "groq-llama3-8b-8192", label: "Llama 3 8B (Groq)" },
-    { value: "groq-llama3-70b-8192", label: "Llama 3 70B (Groq)" }
+    { value: "groq-llama3-70b-8192", label: "Llama 3 70B (Groq)" },
+    { value: "groq-mixtral-8x7b-32768", label: "Mixtral 8x7B (Groq)" },
+    { value: "groq-gemma-7b-it", label: "Gemma 7B (Groq)" },
+    { value: "groq-llama-3.1-8b-instant", label: "Llama 3.1 8B Instant (Groq)" },
+    { value: "groq-llama-3.1-70b-versatile", label: "Llama 3.1 70B Versatile (Groq)" },
+    { value: "ollama", label: "Ollama (Local)" }
   ]);
   const [ttsOptions, setTtsOptions] = useState([
     { value: "coqui", label: "Coqui TTS" },
