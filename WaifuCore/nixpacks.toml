@@ -1,0 +1,12 @@
+[phases.setup]
+nixPkgs = ["python39", "pip"]
+nixLibs = ["libgcc"]
+
+[phases.install]
+cmds = ["pip install -r requirements-railway.txt"]
+
+[phases.build]
+cmds = ["echo 'Build completed'"]
+
+[start]
+cmd = "python main_api.py"

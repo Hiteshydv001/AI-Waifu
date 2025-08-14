@@ -123,6 +123,14 @@ def get_available_tts_providers():
     
     return providers
 
+@app.get("/")
+async def root():
+    return {"message": "WaifuCore API is running!", "status": "healthy"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "waifucore-api"}
+
 @app.get("/api/settings")
 async def get_settings():
     return {
@@ -131,5 +139,6 @@ async def get_settings():
     }
 
 if __name__ == "__main__":
-    print("--- Starting WaifuCore Headless API on http://localhost:8000 ---")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    print(f"--- Starting WaifuCore Headless API on port {port} ---")
+    uvicorn.run(app, host="0.0.0.0", port=port)

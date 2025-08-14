@@ -1,34 +1,11 @@
-# requirements.txt
-
-# Core AI & ML
-google-generativeai  # Gemini API
-faster-whisper
-torch
-torchaudio
-sentence-transformers # For memory embeddings
-chromadb            # Vector database for long-term memory
-
-# Web Framework & Utilities
-httpx             # For async API calls
-aiohttp           # For async HTTP requests
-PyYAML
-certifi
-
-# numpy>=1.26.0  # Temporarily commented out due to Python 3.13 compatibility issues
-
-# Audio
-soundfile
-pyaudio
-
-# TTS Services
-kokoro>=0.9.2
-elevenlabs        # ElevenLabs TTS API
-TTS               # Coqui TTS
-
-gradio==4.31.5
+# Ultra-minimal requirements for Railway deployment
 fastapi==0.110.0
 uvicorn==0.29.0
 python-multipart==0.0.9
 pydantic==2.6.4
+certifi
 
-transformers==4.36.2
+# Optional - only if Railway supports them
+# google-generativeai
+# httpx
+# PyYAML
