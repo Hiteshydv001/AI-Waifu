@@ -1,6 +1,7 @@
 import * as React from "react"
 import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
+// THE FIX IS ON THIS LINE: Added the required '.ts' file extension.
 import { cn } from "@/lib/utils.ts"
 
 const TooltipProvider = TooltipPrimitive.Provider
