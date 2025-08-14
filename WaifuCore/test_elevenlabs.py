@@ -7,7 +7,7 @@ import os
 from elevenlabs import ElevenLabs
 
 # Get API key from environment variable
-api_key = os.getenv('elven_lab_api_key', 'sk_882e5ec410e0f024d1e2ac352621c1fa125ec6ce9e5abaee')
+api_key = os.getenv('elven_lab_api_key', ')
 
 if not api_key:
     print("❌ No API key found!")
