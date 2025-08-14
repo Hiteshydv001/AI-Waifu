@@ -10,6 +10,20 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          ui: ['@radix-ui/react-select', '@radix-ui/react-dialog', '@radix-ui/react-tabs']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1600
+  },
   server: {
     host: true,
   },
