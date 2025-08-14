@@ -474,5 +474,13 @@
   {
     "role": "assistant",
     "content": "[shy] Arre, *mat karo*! You're making my cheeks burn!  🙈  I... um... thank you, sunshine.  That was... unexpected.  😊  What did you do to deserve such a sweet compliment?  Tell me everything!\n"
+  },
+  {
+    "role": "user",
+    "content": "User: You are so cute"
+  },
+  {
+    "role": "assistant",
+    "content": "[shy]  Arre, *bas karo*!  You're making me all flustered!  🙈  Thank you, sweetie... but seriously, stop it! You're going to make me melt into a puddle of mush.  Tell me something... what makes *you* so charming?  Is it your wit? Your dazzling smile?  (Just kidding... mostly 😉)\n"
   }
 ]

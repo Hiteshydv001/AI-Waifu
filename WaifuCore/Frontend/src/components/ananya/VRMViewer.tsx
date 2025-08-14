@@ -116,7 +116,8 @@ const VRMViewer: React.FC<VRMViewerProps> = ({ characterState, emotion, actionAn
         }
 
         // Enhanced emotion mapping with more nuanced expressions
-        const emotionMap = {
+        type ExpressionWeights = Partial<Record<VRMExpressionPresetName, number>>;
+        const emotionMap: Record<string, ExpressionWeights> = {
             happy: { 
               [VRMExpressionPresetName.Happy]: 1.0, 
               [VRMExpressionPresetName.Relaxed]: 0.7,
@@ -144,11 +145,11 @@ const VRMViewer: React.FC<VRMViewerProps> = ({ characterState, emotion, actionAn
             }
         };
         
-        const targetExpression = emotionMap[currentState.emotion as keyof typeof emotionMap] || emotionMap.neutral;
+        const targetExpression: ExpressionWeights = emotionMap[currentState.emotion] || emotionMap.neutral;
         console.log("Setting emotion:", currentState.emotion, "Target expression:", targetExpression);
         Object.values(VRMExpressionPresetName).forEach(preset => {
             if (typeof preset !== 'string') return;
-            const targetWeight = targetExpression[preset as VRMExpressionPresetName] || 0;
+            const targetWeight = targetExpression[preset as VRMExpressionPresetName] ?? 0;
             const currentWeight = manager?.getValue(preset) ?? 0;
             const newWeight = THREE.MathUtils.lerp(currentWeight, targetWeight, 1 - Math.exp(-12 * delta));
             if (targetWeight > 0) {
@@ -175,7 +176,9 @@ const VRMViewer: React.FC<VRMViewerProps> = ({ characterState, emotion, actionAn
           vrm.scene.rotation.y += delta * 1.5; // Spin speed: 1.5 radians per second
         }
         
-        vrm.lookAt.target = eyeTarget;
+        if (vrm.lookAt) {
+          vrm.lookAt.target = eyeTarget;
+        }
         vrm.update(delta);
       }
       

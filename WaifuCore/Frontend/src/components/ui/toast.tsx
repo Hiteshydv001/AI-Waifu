@@ -2,7 +2,12 @@ import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
+<<<<<<< HEAD
 import { cn } from "@/lib/utils"
+=======
+
+// Simple className utility function`nconst cn = (...classes: (string | undefined | null | boolean)[]): string => {`n  return classes.filter(Boolean).join(`' ``').trim();`n}
+>>>>>>> f54ea01059b0bc5115731d26c897ea9b1202603b
 
 const ToastProvider = ToastPrimitives.Provider
 

@@ -1,6 +1,11 @@
 import * as React from "react"
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
+<<<<<<< HEAD
 import { cn } from "@/lib/utils"
+=======
+
+// Simple className utility function`nconst cn = (...classes: (string | undefined | null | boolean)[]): string => {`n  return classes.filter(Boolean).join(`' ``').trim();`n}
+>>>>>>> f54ea01059b0bc5115731d26c897ea9b1202603b
 import { buttonVariants } from "@/components/ui/button"
 
 const AlertDialog = AlertDialogPrimitive.Root

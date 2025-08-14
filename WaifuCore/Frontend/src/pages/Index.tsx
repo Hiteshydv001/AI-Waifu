@@ -48,13 +48,13 @@ const Index = () => {
     setIsInteracting(status.state !== 'idle');
   }, []);
   
-  const handlePlayAnimation = useCallback((actionName: string) => {
+  const handlePlayAnimation = useCallback((actionName: string | null) => {
     console.log("Index.tsx - handleAction called with:", actionName);
     if (actionName === 'stop-spin') {
       // Stop spinning but keep current emotion
       setActionAnimation('stop-spin');
       setIsSpinning(false);
-    } else {
+    } else if (actionName) {
       // Update character status with new emotion (for all non-stop-spin actions)
       setCharacterStatus(prev => ({
         ...prev,
