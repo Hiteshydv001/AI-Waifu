@@ -17,12 +17,19 @@
     "noFallthroughCasesInSwitch": false,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
     
-    "baseUrl": ".", 
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["./src/*"] 
+      "@/*": ["./*"],
+      "@/lib/*": ["./lib/*"],
+      "@/components/*": ["./components/*"]
     }
   },
-  "include": ["src", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/**/*",
+    "src/**/*.ts", 
+    "src/**/*.tsx"
+  ],
+  "exclude": ["node_modules", "dist"]
 }
