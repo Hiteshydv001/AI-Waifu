@@ -1,14 +1,4 @@
-# Stage 1: Build the React Frontend
-FROM node:18-slim AS builder
-WORKDIR /app/Frontend
 
-COPY WaifuCore/Frontend/package*.json ./
-RUN npm install
-
-COPY WaifuCore/Frontend ./
-RUN npm run build
-
-# Stage 2: Build the Python Backend and Final Image
 FROM python:3.11-slim
 ENV PYTHONUNBUFFERED=1
 WORKDIR /app
@@ -24,7 +14,6 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/Frontend/dist /app/static
 COPY WaifuCore ./WaifuCore
 COPY README.md ./
 
