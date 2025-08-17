@@ -26,7 +26,7 @@ memory:
   retrieval_results: 3 # How many memories to fetch for context
 
 tts:
-  provider: "kokoro"  # Options: "kokoro", "elevenlabs", "coqui"
+  provider: "elevenlabs"  # Options: "kokoro", "elevenlabs", "coqui"
   
   # Coqui TTS Server (for high-quality voice cloning)
   coqui:
@@ -45,10 +45,10 @@ tts:
   elevenlabs:
     # API key can be set via environment variable ELEVENLABS_API_KEY or here
     api_key: 
-    voice_id: "ThT5KcBeYPX3keUQqHPh"  # Dorothy - a pleasant female voice
-    model_id: "eleven_monolingual_v1"  # or "eleven_multilingual_v1", "eleven_turbo_v2"
+    voice_id: "21m00Tcm4TlvDq8ikWAM"  # Rachel - young, clear voice
+    model_id: "eleven_turbo_v2"  # Latest model for best quality
     voice_settings:
-      stability: 0.75        # 0.0 to 1.0 - Lower is more variable/expressive
-      similarity_boost: 0.75 # 0.0 to 1.0 - Higher is more similar to original voice
-      style: 0.0            # 0.0 to 1.0 - Adds more style/emotion
+      stability: 0.3        # Lower stability for more expressive/dynamic speech
+      similarity_boost: 0.8 # Higher similarity to maintain voice character
+      style: 0.7           # Higher style for more emotional/anime-like delivery
       use_speaker_boost: true # Enhances similarity to original speaker

@@ -1,6 +1,7 @@
 
 FROM python:3.11-slim
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
 WORKDIR /app
 
 RUN apt-get update && \
@@ -14,12 +15,16 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY WaifuCore ./WaifuCore
-COPY README.md ./
+# Copy the entire project
+COPY . .
 
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r WaifuCore/requirements.txt
+# Install dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r WaifuCore/requirements.txt
 
 EXPOSE 8000
 
-CMD ["uvicorn", "WaifuCore.main_api:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# Change the working directory to include WaifuCore
+WORKDIR /app/WaifuCore
+
+CMD ["uvicorn", "main_api:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
