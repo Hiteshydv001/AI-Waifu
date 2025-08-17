@@ -126,7 +126,28 @@ def get_available_tts_providers():
 
 @app.get("/")
 async def root():
-    return {"message": "WaifuCore API is running!", "status": "healthy"}
+    welcome_message = {
+        "message": "Welcome to WaifuCore API! 🎉",
+        "status": "healthy",
+        "version": "1.0.0",
+        "description": "An AI-powered waifu chat companion with voice synthesis",
+        "endpoints": {
+            "/": "This welcome page",
+            "/docs": "API documentation (Swagger UI)",
+            "/health": "Health check endpoint",
+            "/api/settings": "Available LLM and TTS providers",
+            "/ws/chat": "WebSocket endpoint for real-time chat"
+        },
+        "features": [
+            "Real-time chat with AI waifu",
+            "Voice synthesis with multiple providers",
+            "Multiple LLM backends (Gemini, Groq, etc.)",
+            "WebSocket-based communication",
+            "Voice input support"
+        ],
+        "github": "https://github.com/Hiteshydv001/AI-Waifu"
+    }
+    return welcome_message
 
 @app.get("/health")
 async def health_check():
