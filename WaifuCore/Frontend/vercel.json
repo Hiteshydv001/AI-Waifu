@@ -4,7 +4,8 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "VITE_API_URL": "your-backend-url-here"
   },
   "rewrites": [
     {
