@@ -16,6 +16,7 @@ except ImportError:
     print("Warning: 'certifi' package not found. SSL verification might fail.")
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -137,6 +138,14 @@ async def get_settings():
         "llm_providers": get_available_llm_providers(), 
         "tts_providers": get_available_tts_providers()
     }
+
+# --- ADD THIS SECTION AT THE END OF THE FILE ---
+# This must be LAST, as it's a catch-all route.
+# It serves the static files (HTML, JS, CSS) from the 'static' directory.
+try:
+    app.mount("/", StaticFiles(directory="static", html=True), name="static")
+except RuntimeError:
+    print("Static files directory not found, skipping mount. This is expected during local dev if you haven't built the frontend.")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))

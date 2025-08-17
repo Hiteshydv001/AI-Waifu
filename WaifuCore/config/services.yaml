@@ -18,11 +18,11 @@ llm:
 
 asr:
   model_size: "base" # "base", "small", "medium", "large-v3"
-  device: "cuda"      # "cuda" or "cpu"
-  compute_type: "float16" # "float16" for GPU, "int8" for smaller models
+  device: "cpu"
+  compute_type: "int8"
 
 memory:
-  db_path: "waifu_core/local_db"
+  db_path: "/tmp/local_db"
   retrieval_results: 3 # How many memories to fetch for context
 
 tts:
@@ -32,14 +32,14 @@ tts:
   coqui:
     api_url: "http://localhost:5002/api/tts"
     language: "en"
-    # The single, high-quality reference file for voice cloning
     reference_voice: "assets/character_voices/ananya_happy.wav"
+    device: "cpu"
 
   # Kokoro TTS (for fast, direct library usage)
   kokoro:
     model_dir: "models/kokoro"
     voice: "af_heart" # A built-in high-quality female voice
-    device: "cuda"
+    device: "cpu"
 
   # ElevenLabs TTS (for premium cloud-based voice synthesis)
   elevenlabs:
