@@ -1,19 +1,8 @@
 # WaifuCore/main_api.py
-import sys
-import uvicorn
-import asyncio
-import base64
-from pathlib import Path
 import os
-import ssl
-
-try:
-    import certifi
-    os.environ.pop("SSL_CERT_FILE", None)
-    os.environ["SSL_CERT_FILE"] = certifi.where()
-    print(f"SSL Cert File set to: {certifi.where()}")
-except ImportError:
-    print("Warning: 'certifi' package not found. SSL verification might fail.")
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from typing import List, Dict, Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
