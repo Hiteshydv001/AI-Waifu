@@ -19,11 +19,9 @@
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@/lib/*": ["./lib/*"],
-      "@/components/*": ["./components/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
