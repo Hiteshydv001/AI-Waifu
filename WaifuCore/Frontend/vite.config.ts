@@ -6,10 +6,9 @@ import * as path from "path";
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: [
-      { find: '@', replacement: path.resolve(__dirname, 'src') },
-      { find: '@/lib/utils', replacement: path.resolve(__dirname, 'src/lib/paths') },
-    ]
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
   },
   build: {
     outDir: 'dist',
