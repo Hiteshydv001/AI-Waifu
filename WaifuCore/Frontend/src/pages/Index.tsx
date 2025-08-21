@@ -1,13 +1,13 @@
-import Hero from "@/components/marketing/Hero";
-import Footer from "@/components/marketing/Footer";
-import JsonLd from "@/components/marketing/JsonLd";
-import VRMViewer from "@/components/ananya/VRMViewer";
-import ChatInterface, { CharacterStatus } from "@/components/chat/ChatInterface";
-import ActionsPanel from "@/components/ananya/ActionsPanel";
+import Hero from "../components/marketing/Hero";
+import Footer from "../components/marketing/Footer";
+import JsonLd from "../components/marketing/JsonLd";
+import VRMViewer from "../components/ananya/VRMViewer";
+import ChatInterface, { CharacterStatus } from "../components/chat/ChatInterface";
+import ActionsPanel from "../components/ananya/ActionsPanel";
 import { useState, useCallback, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
 import { 
   Sparkles, 
   MessageCircle, 

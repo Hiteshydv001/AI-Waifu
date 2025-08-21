@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import VRMViewer from "@/components/ananya/VRMViewer";
-import ActionsPanel from "@/components/ananya/ActionsPanel";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import VRMViewer from "../components/ananya/VRMViewer";
+import ActionsPanel from "../components/ananya/ActionsPanel";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
 import { Volume2, VolumeX } from "lucide-react";
 
 const TestVRM = () => {

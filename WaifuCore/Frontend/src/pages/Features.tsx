@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import Footer from "@/components/marketing/Footer";
-import JsonLd from "@/components/marketing/JsonLd";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import Footer from "../components/marketing/Footer";
+import JsonLd from "../components/marketing/JsonLd";
 import { 
   BrainCircuit, 
   BotMessageSquare, 

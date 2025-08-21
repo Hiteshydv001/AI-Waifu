@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useAudioRecorder } from "@/hooks/use-audio-recorder";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Badge } from "../ui/badge";
+import { useAudioRecorder } from "../../hooks/use-audio-recorder";
 import { Mic, MicOff, Send, LoaderCircle, Sparkles, Heart, Settings, Volume2, Users, MoreVertical, Copy, Download, RefreshCw, Trash2 } from "lucide-react";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
