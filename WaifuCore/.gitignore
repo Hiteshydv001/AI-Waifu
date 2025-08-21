@@ -10,8 +10,9 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# Python standard lib directories (not frontend lib)
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -21,12 +22,18 @@ wheels/
 *.egg
 .pth
 
-WaifuCore/models/kokoro/kokoro-v1_0.pth
+# Allow model config but ignore model weights
+!WaifuCore/models/kokoro/config.json
 WaifuCore/models/kokoro/*.pth
-WaifuCore/models/kokoro/*.json
 
+# Track all Python files
+!**/*.py
+!**/requirements.txt
 
-*.pth
+# Track configuration files except secrets
+!**/config/*.yaml
+!**/config/*.yml
+config/secrets.yaml
 
 # Virtual environments
 venv/
@@ -46,13 +53,16 @@ Thumbs.db
 # Logs
 *.log
 
-# Audio files (large)
+# Audio files (large) except demo voice
 *.wav
 *.mp3
 *.flac
+!**/demo_voice.mp3
+!**/character_voices/*.wav
 
-# Model files
-*.vrm
+# Model files (except ananya.vrm and necessary model files)
+!**/ananya.vrm
+!**/models/**/config.json
 *.bin
 *.safetensors
 

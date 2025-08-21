@@ -1,23 +1,38 @@
-
+# Use a slim Python base image
 FROM python:3.11-slim
-ENV PYTHONUNBUFFERED=1
+
+# Set the working directory in the container
 WORKDIR /app
 
-# Install only essential dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    gcc \
-    g++ && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Prevent Python from writing .pyc files
+ENV PYTHONDONTWRITEBYTECODE 1
+# Ensure Python output is sent straight to the terminal
+ENV PYTHONUNBUFFERED 1
 
-# Copy only the minimal requirements
-COPY WaifuCore/requirements.txt ./requirements.txt
+# --- System Dependencies ---
+# Install any system packages your Python libraries might need.
+# 'espeak-ng' is required for Kokoro TTS, for example.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    espeak-ng \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- Python Dependencies ---
+# Copy the full requirements file from the project root
+COPY requirements.txt .
+
+# Install the dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy only the minimal API file
-COPY WaifuCore/main_api_minimal.py ./main.py
+# --- Application Code ---
+# Copy the application source code into the container
+COPY WaifuCore/waifu_core/ ./waifu_core
+COPY WaifuCore/config/ ./config
+COPY WaifuCore/main_api.py ./main.py
 
+# --- Expose Port and Run ---
 EXPOSE 8000
 
+# Command to run the application using uvicorn
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
